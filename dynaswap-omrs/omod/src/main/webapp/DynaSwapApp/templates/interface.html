@@ -1,0 +1,46 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Tool Interface</title>
+    <link rel="stylesheet" href="{% static 'css/interface.css' %}">
+    <!-- should actually install at some point -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
+    <link rel="stylesheet" href="">
+</head>
+<body>
+    <section class="hero is-light">
+        <div class="hero-body">
+          <div class="container">
+            <h1 class="title">
+                Interface Tool
+            </h1>
+            <h2 class="subtitle">
+                For creating directed acyclic graphs in hierarchical access control schemes
+            </h2>
+          </div>
+        </div>
+    </section>
+    
+    <section class="section">
+        <section class="container is-fluid">
+            <button id="create_dag" class="button is-success">Create the DAG</button>
+
+            <!-- hidden by default, until dag is created -->
+            <div id="cy" class="box is-hidden"></div>
+
+            <hr class="hr">
+
+        </section>
+    </section>
+    
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/cytoscape@3.14.0/dist/cytoscape.min.js"></script> 
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/dagre@0.8.5/dist/dagre.min.js"></script> 
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.2.2/cytoscape-dagre.min.js"></script>
+    <script type="text/javascript" src="{% static 'js/interface.js' %}"></script>
+</body>
+</html>
