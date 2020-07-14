@@ -16,6 +16,8 @@ urlpatterns = [
     url(r"^authentication/$", views.AuthenticateView.as_view(), name="authentication"),
     url(r"^get_user_role/$", views.GetUserRoleView.as_view(), name="get_user_role"),
     # interface views
+    url(r"^interface/$", interface_views.index, name="interface"),
+    url(r"^interface/create_dag$", interface_views.create_dag, name="create_dag")
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
