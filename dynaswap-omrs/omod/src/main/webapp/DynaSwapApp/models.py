@@ -1,5 +1,6 @@
 """  DynaSwapApp/models.py  """
-from django.db import models
+from django.db import models, connection
+from collections import namedtuple
 
 
 class Roles(models.Model):
@@ -18,7 +19,9 @@ class Roles(models.Model):
 
 
 class Privileges(models.Model):
-    """ OpenMRS privilege table Class """
+    """ OpenMRS privilege table Class 
+        Possible privileges that can be assigned in OpenMRS 
+    """
     class Meta:
         managed = False
         db_table = "privilege"
@@ -30,17 +33,30 @@ class Privileges(models.Model):
         return self.privilege
 
 
-class RolesPrivileges(models.Model):
-    """ OpenMRS role_privilege table class """
-    class Meta:
-        managed = False
-        unique_together = (('role', 'privilege'))
-        db_table = "role_privilege"
-    role = models.ForeignKey(Roles, null=False, related_name='roles', db_column="role", on_delete=models.CASCADE)    
-    privilege = models.ForeignKey(Privileges, null=False, related_name='privileges', db_column="privilege", on_delete=models.CASCADE)
+class RolesPrivileges():
+    """
+    Django ORM doesn't support tables with composite keys like 'role_privilege'.
+    Instead, custom SQL queries will be used and grouped together as static methods on this class.
+    """
+    @staticmethod
+    def all():
+        """
+        Will return the names of the role/priv mapping but will not return
+        the associated role/priv object.
+        """
+        with connection.cursor() as cursor:
+            sql = "SELECT role, privilege FROM role_privilege"
+            cursor.execute(sql)
+            row = namedtuplefetchall(cursor)
 
-    def __str__(self):
-        return self.role, self.privilege
+        return row
+
+
+def namedtuplefetchall(cursor):
+    """ Return all rows from a cursor as a namedtuple """
+    desc = cursor.description
+    nt_result = namedtuple('Result', [col[0] for col in desc])
+    return [nt_result(*row) for row in cursor.fetchall()]
 
 
 class Users(models.Model):
