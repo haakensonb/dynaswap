@@ -5,9 +5,10 @@ from django.db import models
 class Roles(models.Model):
     """  OpenMRS role Class  """
     class Meta:
+        managed = False
         db_table = "role"
     role = models.CharField(max_length=50, unique=True, primary_key=True)
-    description = models.CharField(max_length=255)
+    description = models.CharField(max_length=255, default='')
     uuid = models.CharField(max_length=38)
     url = models.URLField(max_length=255)
     feature = models.BinaryField()
@@ -16,9 +17,36 @@ class Roles(models.Model):
         return self.role
 
 
+class Privileges(models.Model):
+    """ OpenMRS privilege table Class """
+    class Meta:
+        managed = False
+        db_table = "privilege"
+    privilege = models.CharField(max_length=255, unique=True, primary_key=True)
+    description = models.TextField()
+    uuid = models.CharField(max_length=38)
+
+    def __str__(self):
+        return self.privilege
+
+
+class RolesPrivileges(models.Model):
+    """ OpenMRS role_privilege table class """
+    class Meta:
+        managed = False
+        unique_together = (('role', 'privilege'))
+        db_table = "role_privilege"
+    role = models.ForeignKey(Roles, null=False, related_name='roles', db_column="role", on_delete=models.CASCADE)    
+    privilege = models.ForeignKey(Privileges, null=False, related_name='privileges', db_column="privilege", on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.role, self.privilege
+
+
 class Users(models.Model):
     """  OpenMRS users Class  """
     class Meta:
+        managed = False
         db_table = "users"
     user_id = models.IntegerField(unique=True, primary_key=True)
     username = models.CharField(max_length=50, unique=True)
@@ -27,6 +55,9 @@ class Users(models.Model):
 class DynaSwapUsers(models.Model):
     """  dynaswap_users Class  """
     class Meta:
+        # This table is currently created using the OpenMRS liquibase xml file
+        # so 'managed' must be set to false to prevent attempting to create it twice.
+        managed = False
         db_table = "dynaswap_users"
     face_authentication_id = models.IntegerField(primary_key=True)
     user_id = models.IntegerField()
@@ -41,8 +72,12 @@ class DynaSwapUsers(models.Model):
 
 
 class UsersRoles(models.Model):
-    """  OpenMRS user_role Class  """
+    """ OpenMRS user_role Class  
+        The Django ORM doesn't support a composite key design. This model doesn't
+        actually work and will need to be replaced with a custom SQL queries.
+    """
     class Meta:
+        managed = False
         db_table = "user_role"
     user_id = models.ForeignKey(
         Users, db_column="user_id", on_delete=models.CASCADE)
