@@ -4,7 +4,6 @@ from django.http import JsonResponse
 from interface.services.priv import DAG
 import json
 
-
 # Create your views here.
 def index(request):
     possible_privs = PossiblePrivilege.objects.all()
