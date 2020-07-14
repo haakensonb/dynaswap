@@ -4,7 +4,7 @@ from DynaSwapApp.services.atallah_interface.dag import DAG
 import json
 
 def index(request):
-    return render(request, 'interface/index.html')
+    return render(request, 'interface.html')
 
 def create_dag(request):
     try:
