@@ -1,4 +1,4 @@
-package org.openmrs.module.dynaswap;
+package org.openmrs.module.dynaswap.atallah;
 
 import org.openmrs.util.Security;
 
@@ -6,7 +6,9 @@ public class CryptNode {
 	
 	public String name;
 	
-	// need label as well, or maybe just label instead of name
+	// maybe use uuid for label when actually using in database
+	public String label;
+	
 	private String secret;
 	
 	/**
@@ -14,6 +16,7 @@ public class CryptNode {
 	 */
 	public CryptNode(String name) {
 		this.name = name;
+		this.label = Security.getRandomToken();
 		this.updateSecret();
 	}
 	
@@ -23,5 +26,17 @@ public class CryptNode {
 	
 	public String getSecret() {
 		return this.secret;
+	}
+	
+	public String getLabel() {
+		return this.label;
+	}
+	
+	public String getDeriveKey() {
+		return CryptUtil.hashFunc(this.secret, this.label, "0");
+	}
+	
+	public String getDecryptKey() {
+		return CryptUtil.hashFunc(this.secret, this.label, "1");
 	}
 }

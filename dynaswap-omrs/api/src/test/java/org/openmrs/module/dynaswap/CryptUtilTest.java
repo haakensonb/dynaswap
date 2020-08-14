@@ -1,7 +1,7 @@
 package org.openmrs.module.dynaswap;
 
 import org.junit.Test;
-import org.openmrs.module.dynaswap.CryptUtil;
+import org.openmrs.module.dynaswap.atallah.CryptUtil;
 import org.openmrs.util.Security;
 import static org.junit.Assert.*;
 
