@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.Comparator;
@@ -11,6 +12,8 @@ import java.util.Comparator;
 import org.openmrs.api.context.Context;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.node.ArrayNode;
+import org.codehaus.jackson.node.ObjectNode;
 import org.openmrs.Privilege;
 import org.openmrs.Role;
 
@@ -18,6 +21,8 @@ import org.openmrs.Role;
  * CryptDAG
  */
 public class CryptDAG {
+	
+	public String formattedInfo;
 	
 	/**
 	 * constructor
@@ -87,7 +92,12 @@ public class CryptDAG {
 			tot.add(Collections.<Privilege> emptySet());
 		}
 		this.dfs(adj_mat, nodePrivs, tot, 0);
-		this.getFormattedGraph(adj_mat, nodePrivs, nodeNames);
+		try {
+			this.getFormattedGraph(adj_mat, nodePrivs, nodeNames);
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
 		// System.out.println("adj_mat: " + adj_mat.toString());
 		// System.out.println("\nnode: " + nodePrivs.toString());
 		// System.out.println("\nmappings: " + rolePrivMappings.toString());
@@ -124,37 +134,43 @@ public class CryptDAG {
 	}
 	
 	public void getFormattedGraph(ArrayList<ArrayList<Integer>> adj_mat, ArrayList<Set<Privilege>> nodePrivs,
-	        ArrayList<String> nodeNames) {
-		// There must be a better way to format nested HashMaps for json,
-		// or some way to get python's dict functionality for this.
-		// Maybe formatting as custom objects and then converting?
-		HashMap<String, HashMap<String, ArrayList<HashMap<String, HashMap<String, String>>>>> formattedInfo = new HashMap<String, HashMap<String, ArrayList<HashMap<String, HashMap<String, String>>>>>();
-		// use format as specified in cytoscape-dagre
-		formattedInfo.put("elements", new HashMap<String, ArrayList<HashMap<String, HashMap<String, String>>>>());
-		formattedInfo.get("elements").put("nodes", new ArrayList<HashMap<String, HashMap<String, String>>>());
-		formattedInfo.get("elements").put("edges", new ArrayList<HashMap<String, HashMap<String, String>>>());
+	        ArrayList<String> nodeNames) throws IOException {
+		ObjectMapper mapper = new ObjectMapper();
+		ObjectNode info = mapper.createObjectNode();
+		ObjectNode nodeEdge = mapper.createObjectNode();
+		ArrayNode nodes = mapper.createArrayNode();
+		ArrayNode edges = mapper.createArrayNode();
 		
 		for (int i = 0; i < adj_mat.size(); i++) {
-			// create node
-			HashMap<String, HashMap<String, String>> node = new HashMap<String, HashMap<String, String>>();
-			HashMap<String, String> nodeData = new HashMap<String, String>();
-			nodeData.put("id", nodeNames.get(i));
-			nodeData.put("label", nodeNames.get(i));
-			node.put("data", nodeData);
-			formattedInfo.get("elements").get("nodes").add(node);
+			String nodeName = nodeNames.get(i);
+			// create json node object
+			ObjectNode node = mapper.createObjectNode();
+			node.put("id", nodeName);
+			node.put("label", nodeName);
+			// create json nodeData to hold node
+			ObjectNode nodeData = mapper.createObjectNode();
+			nodeData.put("data", node);
+			nodes.add(nodeData);
 			for (int j = 0; j < adj_mat.get(i).size(); j++) {
-				// create edge
-				HashMap<String, HashMap<String, String>> edge = new HashMap<String, HashMap<String, String>>();
-				HashMap<String, String> edgeData = new HashMap<String, String>();
+				// create json edge object
+				ObjectNode edge = mapper.createObjectNode();
 				int val = adj_mat.get(i).get(j);
-				edgeData.put("id", "e" + i + val);
-				edgeData.put("source", nodeNames.get(i));
-				edgeData.put("target", nodeNames.get(val));
-				edge.put("data", edgeData);
-				formattedInfo.get("elements").get("edges").add(edge);
+				String idName = String.format("e%s%s", i, val);
+				edge.put("id", idName);
+				String srcName = nodeNames.get(i);
+				edge.put("source", srcName);
+				String targetName = nodeNames.get(val);
+				edge.put("target", targetName);
+				// create json edgeData to hold edge
+				ObjectNode edgeData = mapper.createObjectNode();
+				edgeData.put("data", edge);
+				edges.add(edgeData);
 			}
 		}
 		
-		System.out.println(formattedInfo.toString());
+		nodeEdge.put("nodes", nodes);
+		nodeEdge.put("edges", edges);
+		info.put("elements", nodeEdge);
+		this.formattedInfo = mapper.writeValueAsString(info);
 	}
 }
