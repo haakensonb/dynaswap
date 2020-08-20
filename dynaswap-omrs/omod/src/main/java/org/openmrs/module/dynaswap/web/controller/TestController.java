@@ -37,7 +37,7 @@ public class TestController {
 		CryptDAG dag = new CryptDAG();
 		final HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-		return new ResponseEntity<String>(dag.formattedInfo, httpHeaders, HttpStatus.OK);
+		return new ResponseEntity<String>(dag.getFormattedGraph(), httpHeaders, HttpStatus.OK);
 	}
 	
 	@RequestMapping(value = "/test", method = RequestMethod.GET)
