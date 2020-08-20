@@ -22,7 +22,7 @@ import org.openmrs.Role;
  */
 public class CryptDAG {
 	
-	public String formattedInfo;
+	private String formattedGraph;
 	
 	/**
 	 * constructor
@@ -34,18 +34,18 @@ public class CryptDAG {
 	public void createGraph() {
 		List<Role> roles = Context.getUserService().getAllRoles();
 		ArrayList<Set<Privilege>> nodePrivs = new ArrayList<Set<Privilege>>();
-		// maybe change role key to use uuid (unique)
+		// Maybe change role key to use uuid (unique)?
 		ArrayList<ImmutablePair<String, Set<Privilege>>> rolePrivMappings = new ArrayList<ImmutablePair<String, Set<Privilege>>>();
 		for (Role role : roles) {
-			// get a list of all the possible privileges
+			// Get a list of all the possible privileges.
 			nodePrivs.add(role.getPrivileges());
-			// build role/privilege mapping
+			// Build role/privilege mapping.
 			String roleName = role.getName();
 			Set<Privilege> privs = role.getPrivileges();
 			ImmutablePair<String, Set<Privilege>> mapping = new ImmutablePair<String, Set<Privilege>>(roleName, privs);
 			rolePrivMappings.add(mapping);
 		}
-		// find all intersections between privileges and generate dummy nodes
+		// Find all intersections between privileges and generate dummy nodes.
 		int d = 0;
 		for (int i = 0; i < nodePrivs.size(); i++) {
 			for (int j = i + 1; j < nodePrivs.size(); j++) {
@@ -63,60 +63,47 @@ public class CryptDAG {
 				}
 			}
 		}
-		// sort rolePrivMappings by number of privileges in descending order
+		// Sort rolePrivMappings by number of privileges in descending order.
 		Collections.sort(rolePrivMappings, new Comparator<ImmutablePair<String, Set<Privilege>>>() {
-			
 			public int compare(ImmutablePair<String, Set<Privilege>> p1, ImmutablePair<String, Set<Privilege>> p2) {
-				// return p1.getValue().size() - p2.getValue().size();
 				return p2.getValue().size() - p1.getValue().size();
 			}
 		});
+		// Place node names in an ArrayList in the same descending order of privileges.
 		ArrayList<String> nodeNames = new ArrayList<String>();
 		for (ImmutablePair<String, Set<Privilege>> p : rolePrivMappings) {
 			nodeNames.add(p.getKey());
 		}
-		System.out.println("nodeNames: " + nodeNames.toString());
-		System.out.println("nodePrivs before: " + nodePrivs.toString());
-		// sort nodePrivs by number of privileges in descending order
+		// Sort nodePrivs by number of privileges in descending order.
 		Collections.sort(nodePrivs, new Comparator<Set<Privilege>>() {
-			
 			public int compare(Set<Privilege> p1, Set<Privilege> p2) {
-				// return p1.size() - p2.size();
 				return p2.size() - p1.size();
 			}
 		});
-		System.out.println("nodePrivs after: " + nodePrivs.toString());
+		// Init adjacency matrix.
 		ArrayList<ArrayList<Integer>> adj_mat = new ArrayList<ArrayList<Integer>>(nodePrivs.size());
-		// init ArrayList with empty ArrayLists for use later in dfs
+		// Init ArrayList with empty ArrayLists for use later in dfs.
 		for (int i = 0; i < nodePrivs.size(); i++) {
 			adj_mat.add(new ArrayList<Integer>());
 		}
 		ArrayList<Set<Privilege>> tot = new ArrayList<Set<Privilege>>(nodePrivs.size());
-		// init ArrayList with empty sets for use later in dfs
+		// Init ArrayList with empty sets for use later in dfs.
 		for (int i = 0; i < nodePrivs.size(); i++) {
 			tot.add(Collections.<Privilege> emptySet());
 		}
-		// System.out.println("before");
-		// System.out.println("adj_mat: " + adj_mat.toString());
-		// System.out.println("tot: " + tot.toString());
+		// Use depth first search to build the adjacency matrix.
 		this.dfs(adj_mat, nodePrivs, tot, 0);
-		// System.out.println("after");
-		// System.out.println("adj_mat: " + adj_mat.toString());
-		// System.out.println("tot: " + tot.toString());
-		
+		// Try to store special json formatted version of the graph.
 		try {
-			this.getFormattedGraph(adj_mat, nodePrivs, nodeNames);
+			this.formatGraphAsJson(adj_mat, nodePrivs, nodeNames);
 		}
 		catch (IOException e) {
 			e.printStackTrace();
 		}
-		// System.out.println("\nnode: " + nodePrivs.toString());
-		// System.out.println("\nmappings: " + rolePrivMappings.toString());
 	}
 	
 	private void dfs(ArrayList<ArrayList<Integer>> adj_mat, ArrayList<Set<Privilege>> nodePrivs,
 	        ArrayList<Set<Privilege>> tot, int cur) {
-		// System.out.println("Entering dfs with cur: " + Integer.toString(cur));
 		if (cur == nodePrivs.size()) {
 			return;
 		}
@@ -127,21 +114,10 @@ public class CryptDAG {
 		
 		for (int i = cur + 1; i < nodePrivs.size(); i++) {
 			this.dfs(adj_mat, nodePrivs, tot, i);
-			// boolean isSubsetOfNodePriv = nodePrivs.get(cur).containsAll(tot.get(i));
-			// boolean isSubsetOfTot = tot.get(cur).containsAll(tot.get(i));
-			// boolean isSubsetOfNodePriv = tot.get(i).containsAll(nodePrivs.get(cur));
-			// boolean isSubsetOfTot = tot.get(i).containsAll(tot.get(cur));
-			// boolean isSubsetOfNodePriv = SetUtils.isProperSubset(tot.get(i), nodePrivs.get(cur));
-			// boolean isSubsetOfTot = SetUtils.isProperSubset(tot.get(i), tot.get(cur));
-			boolean isSubsetOfNodePriv = SetUtils.isProperSubset(nodePrivs.get(cur), tot.get(i));
-			boolean isSubsetOfTot = SetUtils.isProperSubset(tot.get(cur), tot.get(i));
-			// System.out.println("isSubsetOfNodePriv: " + isSubsetOfNodePriv);
-			// System.out.println("isSubsetOfTot: " + isSubsetOfTot);
-			if ((isSubsetOfNodePriv == true) && (isSubsetOfTot == false)) {
-				// if (isSubsetOfNodePriv == true) {
-				// System.out.println("about to add!!!!!!!!!!!!!!!!!!");
+			boolean nodePrivIsSubset = SetUtils.isProperSubset(nodePrivs.get(cur), tot.get(i));
+			boolean totIsSubset = SetUtils.isProperSubset(tot.get(cur), tot.get(i));
+			if (nodePrivIsSubset && (!totIsSubset)) {
 				if (!adj_mat.get(cur).contains(i)) {
-					System.out.println("adding" + i + "to adj_mat");
 					adj_mat.get(cur).add(i);
 				}
 				// union of tot[cur] and tot[i]
@@ -155,7 +131,7 @@ public class CryptDAG {
 		tot.set(cur, unionSet);
 	}
 	
-	public void getFormattedGraph(ArrayList<ArrayList<Integer>> adj_mat, ArrayList<Set<Privilege>> nodePrivs,
+	public void formatGraphAsJson(ArrayList<ArrayList<Integer>> adj_mat, ArrayList<Set<Privilege>> nodePrivs,
 	        ArrayList<String> nodeNames) throws IOException {
 		ObjectMapper mapper = new ObjectMapper();
 		ObjectNode info = mapper.createObjectNode();
@@ -165,16 +141,16 @@ public class CryptDAG {
 		
 		for (int i = 0; i < adj_mat.size(); i++) {
 			String nodeName = nodeNames.get(i);
-			// create json node object
+			// Create json node object.
 			ObjectNode node = mapper.createObjectNode();
 			node.put("id", nodeName);
 			node.put("label", nodeName);
-			// create json nodeData to hold node
+			// Create json nodeData to hold node.
 			ObjectNode nodeData = mapper.createObjectNode();
 			nodeData.put("data", node);
 			nodes.add(nodeData);
 			for (int j = 0; j < adj_mat.get(i).size(); j++) {
-				// create json edge object
+				// Create json edge object.
 				ObjectNode edge = mapper.createObjectNode();
 				int val = adj_mat.get(i).get(j);
 				String idName = String.format("e%s%s", i, val);
@@ -183,7 +159,7 @@ public class CryptDAG {
 				edge.put("source", srcName);
 				String targetName = nodeNames.get(val);
 				edge.put("target", targetName);
-				// create json edgeData to hold edge
+				// Create json edgeData to hold edge.
 				ObjectNode edgeData = mapper.createObjectNode();
 				edgeData.put("data", edge);
 				edges.add(edgeData);
@@ -193,6 +169,10 @@ public class CryptDAG {
 		nodeEdge.put("nodes", nodes);
 		nodeEdge.put("edges", edges);
 		info.put("elements", nodeEdge);
-		this.formattedInfo = mapper.writeValueAsString(info);
+		this.formattedGraph = mapper.writeValueAsString(info);
+	}
+
+	public String getFormattedGraph() {
+		return this.formattedGraph;
 	}
 }
