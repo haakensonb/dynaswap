@@ -20,13 +20,18 @@ public class CryptUtil {
 	}
 	
 	public static String encrypt(String r_ij, String t_j, String k_j) {
-		byte[] init = Security.generateNewInitVector();
+		byte[] init = Security.getSavedInitVector();
 		String message = t_j + k_j;
 		byte[] key = hexStringToByteArray(r_ij);
-		System.out.println("r_ij length: " + r_ij.length());
-		System.out.println("key length: " + key.length);
 		String ciphertext = Security.encrypt(message, init, key);
 		return ciphertext;
+	}
+	
+	public static String decrypt(String ciphertext, String keyHexStr) {
+		byte[] init = Security.getSavedInitVector();
+		byte[] key = hexStringToByteArray(keyHexStr);
+		String plaintext = Security.decrypt(ciphertext, init, key);
+		return plaintext;
 	}
 	
 	// String must be an even length to be valid hex string.
