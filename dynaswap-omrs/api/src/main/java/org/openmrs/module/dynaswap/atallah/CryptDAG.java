@@ -65,6 +65,7 @@ public class CryptDAG {
 		}
 		// Sort rolePrivMappings by number of privileges in descending order.
 		Collections.sort(rolePrivMappings, new Comparator<ImmutablePair<String, Set<Privilege>>>() {
+			
 			public int compare(ImmutablePair<String, Set<Privilege>> p1, ImmutablePair<String, Set<Privilege>> p2) {
 				return p2.getValue().size() - p1.getValue().size();
 			}
@@ -76,6 +77,7 @@ public class CryptDAG {
 		}
 		// Sort nodePrivs by number of privileges in descending order.
 		Collections.sort(nodePrivs, new Comparator<Set<Privilege>>() {
+			
 			public int compare(Set<Privilege> p1, Set<Privilege> p2) {
 				return p2.size() - p1.size();
 			}
@@ -100,6 +102,30 @@ public class CryptDAG {
 		catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+		// Create CryptNode objects and store in HashMap.
+		HashMap<String, CryptNode> nodeMapping = new HashMap<String, CryptNode>();
+		for (int i = 0; i < nodePrivs.size(); i++) {
+			String name = nodeNames.get(i);
+			CryptNode node = new CryptNode(name);
+			nodeMapping.put(name, node);
+		}
+		// Create CryptEdge objects and assign to proper CryptNode objects.
+		for (int i = 0; i < adj_mat.size(); i++) {
+			int row = i;
+			for (int j = 0; j < adj_mat.get(i).size(); j++) {
+				int val = adj_mat.get(i).get(j);
+				String parentName = nodeNames.get(row);
+				CryptNode parentNode = nodeMapping.get(parentName);
+				String childName = nodeNames.get(val);
+				CryptNode childNode = nodeMapping.get(childName);
+				CryptEdge edge = new CryptEdge(parentNode.getDeriveKey(), childNode.getLabel(), childNode.getDeriveKey(),
+				        childNode.getDecryptKey());
+				nodeMapping.get(parentName).edges.put(childName, edge);
+			}
+		}
+		System.out.println("\nnodeMapping: " + nodeMapping.toString());
+		
 	}
 	
 	private void dfs(ArrayList<ArrayList<Integer>> adj_mat, ArrayList<Set<Privilege>> nodePrivs,
@@ -171,7 +197,7 @@ public class CryptDAG {
 		info.put("elements", nodeEdge);
 		this.formattedGraph = mapper.writeValueAsString(info);
 	}
-
+	
 	public String getFormattedGraph() {
 		return this.formattedGraph;
 	}

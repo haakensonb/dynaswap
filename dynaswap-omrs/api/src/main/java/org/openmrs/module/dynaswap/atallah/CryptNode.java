@@ -1,5 +1,6 @@
 package org.openmrs.module.dynaswap.atallah;
 
+import java.util.HashMap;
 import org.openmrs.util.Security;
 
 public class CryptNode {
@@ -11,6 +12,8 @@ public class CryptNode {
 	
 	private String secret;
 	
+	public HashMap<String, CryptEdge> edges;
+	
 	/**
 	 * constructor
 	 */
@@ -18,6 +21,7 @@ public class CryptNode {
 		this.name = name;
 		this.label = Security.getRandomToken();
 		this.updateSecret();
+		this.edges = new HashMap<String, CryptEdge>();
 	}
 	
 	public void updateSecret() {
