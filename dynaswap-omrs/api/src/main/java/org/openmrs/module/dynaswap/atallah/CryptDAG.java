@@ -67,20 +67,25 @@ public class CryptDAG {
 		Collections.sort(rolePrivMappings, new Comparator<ImmutablePair<String, Set<Privilege>>>() {
 			
 			public int compare(ImmutablePair<String, Set<Privilege>> p1, ImmutablePair<String, Set<Privilege>> p2) {
-				return p1.getValue().size() - p2.getValue().size();
+				// return p1.getValue().size() - p2.getValue().size();
+				return p2.getValue().size() - p1.getValue().size();
 			}
 		});
 		ArrayList<String> nodeNames = new ArrayList<String>();
 		for (ImmutablePair<String, Set<Privilege>> p : rolePrivMappings) {
 			nodeNames.add(p.getKey());
 		}
+		System.out.println("nodeNames: " + nodeNames.toString());
+		System.out.println("nodePrivs before: " + nodePrivs.toString());
 		// sort nodePrivs by number of privileges in descending order
 		Collections.sort(nodePrivs, new Comparator<Set<Privilege>>() {
 			
 			public int compare(Set<Privilege> p1, Set<Privilege> p2) {
-				return p1.size() - p2.size();
+				// return p1.size() - p2.size();
+				return p2.size() - p1.size();
 			}
 		});
+		System.out.println("nodePrivs after: " + nodePrivs.toString());
 		ArrayList<ArrayList<Integer>> adj_mat = new ArrayList<ArrayList<Integer>>(nodePrivs.size());
 		// init ArrayList with empty ArrayLists for use later in dfs
 		for (int i = 0; i < nodePrivs.size(); i++) {
@@ -91,21 +96,27 @@ public class CryptDAG {
 		for (int i = 0; i < nodePrivs.size(); i++) {
 			tot.add(Collections.<Privilege> emptySet());
 		}
+		// System.out.println("before");
+		// System.out.println("adj_mat: " + adj_mat.toString());
+		// System.out.println("tot: " + tot.toString());
 		this.dfs(adj_mat, nodePrivs, tot, 0);
+		// System.out.println("after");
+		// System.out.println("adj_mat: " + adj_mat.toString());
+		// System.out.println("tot: " + tot.toString());
+		
 		try {
 			this.getFormattedGraph(adj_mat, nodePrivs, nodeNames);
 		}
 		catch (IOException e) {
 			e.printStackTrace();
 		}
-		// System.out.println("adj_mat: " + adj_mat.toString());
 		// System.out.println("\nnode: " + nodePrivs.toString());
 		// System.out.println("\nmappings: " + rolePrivMappings.toString());
 	}
 	
 	private void dfs(ArrayList<ArrayList<Integer>> adj_mat, ArrayList<Set<Privilege>> nodePrivs,
 	        ArrayList<Set<Privilege>> tot, int cur) {
-		System.out.println("Entering dfs with cur: " + Integer.toString(cur));
+		// System.out.println("Entering dfs with cur: " + Integer.toString(cur));
 		if (cur == nodePrivs.size()) {
 			return;
 		}
@@ -116,10 +127,21 @@ public class CryptDAG {
 		
 		for (int i = cur + 1; i < nodePrivs.size(); i++) {
 			this.dfs(adj_mat, nodePrivs, tot, i);
-			boolean isSubsetOfNodePriv = nodePrivs.get(cur).containsAll(tot.get(i));
-			boolean isSubsetOfTot = tot.get(cur).containsAll(tot.get(i));
-			if (isSubsetOfNodePriv && !isSubsetOfTot) {
+			// boolean isSubsetOfNodePriv = nodePrivs.get(cur).containsAll(tot.get(i));
+			// boolean isSubsetOfTot = tot.get(cur).containsAll(tot.get(i));
+			// boolean isSubsetOfNodePriv = tot.get(i).containsAll(nodePrivs.get(cur));
+			// boolean isSubsetOfTot = tot.get(i).containsAll(tot.get(cur));
+			// boolean isSubsetOfNodePriv = SetUtils.isProperSubset(tot.get(i), nodePrivs.get(cur));
+			// boolean isSubsetOfTot = SetUtils.isProperSubset(tot.get(i), tot.get(cur));
+			boolean isSubsetOfNodePriv = SetUtils.isProperSubset(nodePrivs.get(cur), tot.get(i));
+			boolean isSubsetOfTot = SetUtils.isProperSubset(tot.get(cur), tot.get(i));
+			// System.out.println("isSubsetOfNodePriv: " + isSubsetOfNodePriv);
+			// System.out.println("isSubsetOfTot: " + isSubsetOfTot);
+			if ((isSubsetOfNodePriv == true) && (isSubsetOfTot == false)) {
+				// if (isSubsetOfNodePriv == true) {
+				// System.out.println("about to add!!!!!!!!!!!!!!!!!!");
 				if (!adj_mat.get(cur).contains(i)) {
+					System.out.println("adding" + i + "to adj_mat");
 					adj_mat.get(cur).add(i);
 				}
 				// union of tot[cur] and tot[i]

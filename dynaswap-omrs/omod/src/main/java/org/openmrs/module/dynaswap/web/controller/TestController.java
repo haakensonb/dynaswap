@@ -19,6 +19,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
 
 @Controller("${rootrootArtifactId}.TestController")
 @RequestMapping(value = "module/dynaswap")
@@ -37,6 +38,12 @@ public class TestController {
 		final HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.setContentType(MediaType.APPLICATION_JSON);
 		return new ResponseEntity<String>(dag.formattedInfo, httpHeaders, HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/test", method = RequestMethod.GET)
+	public ModelAndView getTest() {
+		ModelAndView modelAndView = new ModelAndView("module/dynaswap/test");
+		return modelAndView;
 	}
 	
 }

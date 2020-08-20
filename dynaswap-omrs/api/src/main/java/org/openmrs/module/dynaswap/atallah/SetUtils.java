@@ -29,4 +29,13 @@ public class SetUtils {
 		copySetA.removeAll(setB);
 		return copySetA;
 	}
+	
+	// check if setB is a proper subset of setA
+	public static boolean isProperSubset(Set<Privilege> setA, Set<Privilege> setB) {
+		// proper subsets can't be equal
+		if (setA.equals(setB)) {
+			return false;
+		}
+		return setA.containsAll(setB);
+	}
 }
