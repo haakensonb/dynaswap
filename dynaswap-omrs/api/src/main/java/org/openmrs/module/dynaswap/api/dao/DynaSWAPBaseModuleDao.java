@@ -40,4 +40,16 @@ public class DynaSWAPBaseModuleDao {
 		getSession().saveOrUpdate(node);
 		return node;
 	}
+	
+	public int deleteAllCryptNodeEdgeData() {
+		// Total number of rows deleted across the three tables.
+		int result = 0;
+		String query1 = "delete from cryptnode_cryptedge;";
+		String query2 = "delete from cryptnode;";
+		String query3 = "delete from cryptedge;";
+		result += getSession().createSQLQuery(query1).executeUpdate();
+		result += getSession().createSQLQuery(query2).executeUpdate();
+		result += getSession().createSQLQuery(query3).executeUpdate();
+		return result;
+	}
 }

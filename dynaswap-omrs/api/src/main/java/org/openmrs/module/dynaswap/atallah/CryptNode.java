@@ -74,4 +74,8 @@ public class CryptNode {
 	public String getDecryptKey() {
 		return CryptUtil.hashFunc(this.secret, this.label, "1");
 	}
+	
+	public int getId() {
+		return this.id;
+	}
 }

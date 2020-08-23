@@ -115,6 +115,12 @@ public class CryptDAG {
 			e.printStackTrace();
 		}
 		
+		// Delete any previous CryptNode/CryptEdge objects from an old hierarchy
+		// NOTE: Once enc/dec functionality is added, the old hierarchy must decrypt all
+		// 		 data before deleting hierarchy information.
+		int result = this.dynaService.deleteAllCryptNodeEdgeData();
+		System.out.println("Delete results: " + Integer.toString(result));
+		
 		// Create CryptNode objects and store in HashMap.
 		HashMap<String, CryptNode> nodeMapping = new HashMap<String, CryptNode>();
 		for (int i = 0; i < nodePrivs.size(); i++) {

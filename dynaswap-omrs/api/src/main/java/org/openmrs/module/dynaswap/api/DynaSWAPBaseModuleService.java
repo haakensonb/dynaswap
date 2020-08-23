@@ -50,4 +50,8 @@ public interface DynaSWAPBaseModuleService extends OpenmrsService {
 	@Authorized(DynaSWAPBaseModuleConfig.MODULE_PRIVILEGE)
 	@Transactional
 	CryptNode saveCryptNode(CryptNode node) throws APIException;
+	
+	@Authorized(DynaSWAPBaseModuleConfig.MODULE_PRIVILEGE)
+	@Transactional
+	int deleteAllCryptNodeEdgeData() throws APIException;
 }

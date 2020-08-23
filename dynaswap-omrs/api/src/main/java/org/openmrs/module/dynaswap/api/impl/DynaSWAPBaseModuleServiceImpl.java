@@ -55,4 +55,10 @@ public class DynaSWAPBaseModuleServiceImpl extends BaseOpenmrsService implements
 	public CryptNode saveCryptNode(CryptNode node) throws APIException {
 		return dao.saveCryptNode(node);
 	}
+	
+	@Override
+	public int deleteAllCryptNodeEdgeData() throws APIException {
+		return dao.deleteAllCryptNodeEdgeData();
+	}
+	
 }
