@@ -1,9 +1,25 @@
 package org.openmrs.module.dynaswap.atallah;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "cryptedge")
 public class CryptEdge {
 	
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id", updatable = false, nullable = false, unique = true)
+	private int id;
+	
+	@Column(name = "r_ij")
 	private String r_ij;
 	
+	@Column(name = "y_ij")
 	public String y_ij;
 	
 	/**

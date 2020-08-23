@@ -13,6 +13,7 @@ import org.hibernate.criterion.Restrictions;
 import org.openmrs.api.db.hibernate.DbSession;
 import org.openmrs.api.db.hibernate.DbSessionFactory;
 import org.openmrs.module.dynaswap.Item;
+import org.openmrs.module.dynaswap.atallah.CryptNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -33,5 +34,10 @@ public class DynaSWAPBaseModuleDao {
 	public Item saveItem(Item item) {
 		getSession().saveOrUpdate(item);
 		return item;
+	}
+	
+	public CryptNode saveCryptNode(CryptNode node) {
+		getSession().saveOrUpdate(node);
+		return node;
 	}
 }

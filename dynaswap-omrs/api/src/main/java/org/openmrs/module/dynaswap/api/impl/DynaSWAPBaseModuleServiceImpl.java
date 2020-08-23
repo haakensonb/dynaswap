@@ -15,6 +15,7 @@ import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.dynaswap.Item;
 import org.openmrs.module.dynaswap.api.DynaSWAPBaseModuleService;
 import org.openmrs.module.dynaswap.api.dao.DynaSWAPBaseModuleDao;
+import org.openmrs.module.dynaswap.atallah.CryptNode;
 
 public class DynaSWAPBaseModuleServiceImpl extends BaseOpenmrsService implements DynaSWAPBaseModuleService {
 	
@@ -48,5 +49,10 @@ public class DynaSWAPBaseModuleServiceImpl extends BaseOpenmrsService implements
 		}
 		
 		return dao.saveItem(item);
+	}
+	
+	@Override
+	public CryptNode saveCryptNode(CryptNode node) throws APIException {
+		return dao.saveCryptNode(node);
 	}
 }

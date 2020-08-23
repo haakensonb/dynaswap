@@ -10,27 +10,39 @@ import java.util.Set;
 import java.util.Comparator;
 
 import org.openmrs.api.context.Context;
+import org.openmrs.api.db.hibernate.DbSessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.openmrs.api.db.hibernate.DbSession;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
 import org.openmrs.Privilege;
 import org.openmrs.Role;
+import org.openmrs.module.dynaswap.api.DynaSWAPBaseModuleService;
+import org.openmrs.module.dynaswap.api.dao.DynaSWAPBaseModuleDao;
+import org.openmrs.module.dynaswap.api.impl.DynaSWAPBaseModuleServiceImpl;
 
 /**
  * CryptDAG
  */
+
 public class CryptDAG {
 	
 	private String formattedGraph;
+	
+	private DynaSWAPBaseModuleService dynaService;
 	
 	/**
 	 * constructor
 	 */
 	public CryptDAG() {
+		this.dynaService = Context.getService(DynaSWAPBaseModuleService.class);
 		this.createGraph();
 	}
 	
+	@Transactional
 	public void createGraph() {
 		List<Role> roles = Context.getUserService().getAllRoles();
 		ArrayList<Set<Privilege>> nodePrivs = new ArrayList<Set<Privilege>>();
@@ -121,8 +133,11 @@ public class CryptDAG {
 				CryptNode childNode = nodeMapping.get(childName);
 				CryptEdge edge = new CryptEdge(parentNode.getDeriveKey(), childNode.getLabel(), childNode.getDeriveKey(),
 				        childNode.getDecryptKey());
-				nodeMapping.get(parentName).edges.put(childName, edge);
+				nodeMapping.get(parentName).edges.add(edge);
 			}
+		}
+		for (HashMap.Entry<String, CryptNode> entry : nodeMapping.entrySet()) {
+			this.dynaService.saveCryptNode(entry.getValue());
 		}
 		System.out.println("\nnodeMapping: " + nodeMapping.toString());
 		
