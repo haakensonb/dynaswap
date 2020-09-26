@@ -20,9 +20,15 @@ public class CryptUtil {
 	}
 	
 	public static String encrypt(String r_ij, String t_j, String k_j) {
-		byte[] init = Security.getSavedInitVector();
 		String message = t_j + k_j;
-		byte[] key = hexStringToByteArray(r_ij);
+		String ciphertext = CryptUtil.encrypt(r_ij, message);
+		return ciphertext;
+	}
+
+	// More general form of encryption, rather than specific atallah formatted encryption
+	public static String encrypt(String keyStr, String message) {
+		byte[] init = Security.getSavedInitVector();
+		byte[] key = hexStringToByteArray(keyStr);
 		String ciphertext = Security.encrypt(message, init, key);
 		return ciphertext;
 	}
