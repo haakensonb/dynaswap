@@ -137,8 +137,8 @@ public class CryptDAG {
 				CryptNode parentNode = nodeMapping.get(parentName);
 				String childName = nodeNames.get(val);
 				CryptNode childNode = nodeMapping.get(childName);
-				CryptEdge edge = new CryptEdge(parentNode.getDeriveKey(), childNode.getLabel(), childNode.getDeriveKey(),
-				        childNode.getDecryptKey());
+				CryptEdge edge = new CryptEdge(parentNode.getId(), childNode.getId(), parentNode.getDeriveKey(),
+										childNode.getLabel(), childNode.getDeriveKey(), childNode.getDecryptKey());
 				nodeMapping.get(parentName).edges.add(edge);
 			}
 		}

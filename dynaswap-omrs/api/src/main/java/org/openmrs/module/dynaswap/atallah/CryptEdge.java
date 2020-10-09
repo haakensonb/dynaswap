@@ -21,6 +21,12 @@ public class CryptEdge {
 	
 	@Column(name = "y_ij")
 	public String y_ij;
+
+	@Column(name = "parent_id")
+	public String parentName;
+
+	@Column(name = "child_id")
+	public String childName;
 	
 	/**
 	 * Constructor for edge. Given the parent derive key, child label, child derive key and child
@@ -31,7 +37,10 @@ public class CryptEdge {
 	 * @param t_j hex string of child derive key
 	 * @param k_j hex string of child decrypt key
 	 */
-	public CryptEdge(String t_i, String l_j, String t_j, String k_j) {
+	public CryptEdge(String parentName, String childName, String t_i, String l_j, String t_j, String k_j) {
+		// Store the parent and child node name for ease of access.
+		this.parentName = parentName;
+		this.childName = childName;
 		this.r_ij = CryptUtil.hashFunc(t_i, l_j);
 		this.y_ij = CryptUtil.encrypt(this.r_ij, t_j, k_j);
 	}
