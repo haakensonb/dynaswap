@@ -3,6 +3,7 @@ package org.openmrs.module.dynaswap.atallah;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.ArrayList;
 
 /**
@@ -47,16 +48,34 @@ public class SelfAuthentication {
 	// The methods for deriving keys should probably be placed on the CryptDAG class.
 	// But for now, I will just make them take a nodeMapping HashMap as input.
 	public static ArrayList<String> deriveDescKey(HashMap<String, CryptNode> nodeMapping, String srcNode, String deriveKey){
-		Set<String> descKeys = new HashSet<String>();
+		ArrayList<String> descKeys = new ArrayList<String>();
 		descKeys.add(nodeMapping.get(srcNode).getDecryptKey());
-		descKeys.add(SelfAuthentication.deriveDescKeyHelper());
+		for (String key : SelfAuthentication.deriveDescKeyHelper(nodeMapping, srcNode, deriveKey)){
+			descKeys.add(key);
+		}
+		// Remove any duplicates from the list before returning
+		ArrayList<String> newDescKeys = descKeys.stream()
+												.distinct()
+												.collect(Collectors.toList());
+		return newDescKeys;
 	}
 
 	public static ArrayList<String> deriveDescKeyHelper(HashMap<String, CryptNode> nodeMapping, String srcNode, String deriveKey){
-		Set<String> descKeys = new HashSet<String>();
-		for (CryptEdge edges : nodeMapping.get(srcNode).edges){
-			String ciphertext = CryptUtil.hashFunc(deriveKey,);
+		ArrayList<String> descKeys = new ArrayList<String>();
+		for (CryptEdge edge : nodeMapping.get(srcNode).edges){
+			CryptNode childNode = nodeMapping.get(edge.childName);
+			String ciphertext = CryptUtil.hashFunc(deriveKey, childNode.label);
+			// Will return t_j concated with k_j
+			// In other words, it's the derive key and decrypt key which must be split apart.
+			String plaintext = CryptUtil.decrypt(ciphertext, edge.y_ij);
+			String curDeriveKey = plaintext.substring(0, deriveKey.length());
+			String curDecryptKey = plaintext.substring(deriveKey.length());
+			descKeys.add(curDecryptKey);
+			for (String key : SelfAuthentication.deriveDescKey(nodeMapping, childNode.name, curDeriveKey)){
+				descKeys.add(key);
+			}
 		}
+		return descKeys;
 	}
 
 	public static String selfAuthEncHelper(String privateKey, String data){
