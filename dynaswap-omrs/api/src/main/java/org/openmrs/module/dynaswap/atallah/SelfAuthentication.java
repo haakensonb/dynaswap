@@ -41,8 +41,35 @@ public class SelfAuthentication {
 	public static ArrayList<ArrayList<String>> decrypt(HashMap<String, CryptNode> nodeMapping, ArrayList<ArrayList<String>> data, ArrayList<String> columns, String sourceNode, String targetCol){
 		// Don't have a public role-to-object mapping, so we have to derive all descendant keys.
 		String deriveKey = nodeMapping.get(sourceNode).getDeriveKey();
-		ArrayList<String> privateKeys = 
+		ArrayList<String> privateKeys = SelfAuthentication.deriveDescKey(nodeMapping, sourceNode, deriveKey);
 
+		// Get encrypted data we want and initialize decrypted data
+		int columnIndex = columns.indexOf(targetCol);
+		ArrayList<String> encryptedData = data.get(columnIndex);
+		ArrayList<String> decryptedData = new ArrayList();
+
+		// Figure what key (if any) work
+		String targetKey = "";
+		for (String privateKey : privateKeys){
+			String ciphertext = encryptedData.get(0);
+			String plaintext = CryptUtil.decrypt(ciphertext, privateKey);
+			String plaintextKey = plaintext.substring(0, privateKey.length());
+			if (privateKey.equals(plaintextKey)){
+				targetKey = plaintextKey;
+				break;
+			}
+		}
+
+		// Use working key to decrypt target column data
+		if (!targetKey.isEmpty()){
+			for (String element : encryptedData){
+				String plaintext = CryptUtil.decrypt(element, targetKey);
+				String plaintextData = plaintext.substring(targetKey.length());
+				decryptedData.add(plaintextData);
+			}
+		}
+
+		return decryptedData;
 	}
 
 	// The methods for deriving keys should probably be placed on the CryptDAG class.
