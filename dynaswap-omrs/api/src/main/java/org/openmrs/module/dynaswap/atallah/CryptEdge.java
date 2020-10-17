@@ -21,10 +21,10 @@ public class CryptEdge {
 	
 	@Column(name = "y_ij")
 	public String y_ij;
-
+	
 	@Column(name = "parent_id")
 	public String parentName;
-
+	
 	@Column(name = "child_id")
 	public String childName;
 	

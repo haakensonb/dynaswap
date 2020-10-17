@@ -24,7 +24,7 @@ public class CryptUtil {
 		String ciphertext = CryptUtil.encrypt(r_ij, message);
 		return ciphertext;
 	}
-
+	
 	// More general form of encryption, rather than specific atallah formatted encryption
 	public static String encrypt(String keyStr, String message) {
 		byte[] init = Security.getSavedInitVector();
