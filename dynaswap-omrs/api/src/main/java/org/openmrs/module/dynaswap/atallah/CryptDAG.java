@@ -34,6 +34,11 @@ public class CryptDAG {
 	
 	private DynaSWAPBaseModuleService dynaService;
 	
+	// Some core Roles can't be deleted but we don't always want to include them
+	// in the hierarchy. Instead only consider Roles with this prefix.
+	// HACK: Change this so it isn't hard coded. Or find some other way to specify roles.
+	private static final String ROLE_PREFIX = "[CRYPT]";
+	
 	/**
 	 * constructor
 	 */
@@ -44,7 +49,9 @@ public class CryptDAG {
 	
 	@Transactional
 	public void createGraph() {
-		List<Role> roles = Context.getUserService().getAllRoles();
+		List<Role> unfilteredRoles = Context.getUserService().getAllRoles();
+		// Filter down to only Roles with the right name prefix.
+		List<Role> roles = this.getPrefixFilteredRoles(unfilteredRoles);
 		ArrayList<Set<Privilege>> nodePrivs = new ArrayList<Set<Privilege>>();
 		// Maybe change role key to use uuid (unique)?
 		ArrayList<ImmutablePair<String, Set<Privilege>>> rolePrivMappings = new ArrayList<ImmutablePair<String, Set<Privilege>>>();
@@ -221,5 +228,15 @@ public class CryptDAG {
 	
 	public String getFormattedGraph() {
 		return this.formattedGraph;
+	}
+	
+	private List<Role> getPrefixFilteredRoles(List<Role> unfilteredRoles) {
+		List<Role> roles = new ArrayList<Role>();
+		for (Role role : unfilteredRoles) {
+			if (role.getRole().startsWith(CryptDAG.ROLE_PREFIX)) {
+				roles.add(role);
+			}
+		}
+		return roles;
 	}
 }
