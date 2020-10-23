@@ -3,6 +3,7 @@ package org.openmrs.module.dynaswap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Random;
 
 import org.junit.Test;
 import org.openmrs.module.dynaswap.atallah.CryptDAG;
@@ -53,11 +54,29 @@ public class SelfAuthenticationTest extends BaseModuleContextSensitiveTest {
 		HashMap<String, CryptNode> nodeMapping = dag.getNodeMapping();
 		SelfAuthentication selfAuth = new SelfAuthentication();
 		ArrayList<ArrayList<String>> data = this.getSimpleData();
+		System.out.println("Original Data: ");
+		this.print2dArrayList(data);
 		ArrayList<String> columns = this.getSimpleDataColumns();
 		HashMap<String, ArrayList<String>> roleFieldMapping = this.getSimpleRoleFieldMapping();
-		ArrayList<ArrayList<String>> encryptedData = selfAuth.encrypt(nodeMapping, roleFieldMapping, data, columns);
+		ArrayList<ArrayList<String>> encryptedData = SelfAuthentication
+		        .encrypt(nodeMapping, roleFieldMapping, data, columns);
+		System.out.println("Encrypted data:");
 		this.print2dArrayList(encryptedData);
-		ArrayList<ArrayList<String>> decryptedData = selfAuth.decrypt(nodeMapping, roleFieldMapping, encryptedData, columns);
+		// Choose random starting node
+		Random rand = new Random();
+		int numOfNodes = nodeMapping.keySet().size();
+		String[] possibleNodes = new String[numOfNodes];
+		possibleNodes = nodeMapping.keySet().toArray(possibleNodes);
+		String sourceNode = possibleNodes[rand.nextInt(possibleNodes.length - 1)];
+		// What about when there are multiple valid target cols?
+		String randTargetCol = columns.get(rand.nextInt(columns.size() - 1));
+		String targetCol = SelfAuthentication.getValidTargetCol(roleFieldMapping, sourceNode, randTargetCol, nodeMapping,
+		    columns);
+		System.out.println("Target column: " + targetCol);
+		ArrayList<ArrayList<String>> decryptedData = SelfAuthentication.decrypt(nodeMapping, encryptedData, columns,
+		    sourceNode, targetCol);
+		System.out.println("Decrypted data:");
+		this.print2dArrayList(decryptedData);
 	}
 	
 	public void print2dArrayList(ArrayList<ArrayList<String>> arr) {

@@ -5,7 +5,11 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Random;
 
 /**
  * SelfAuthentication For self-authenticating encryption/decryption used in the Atallah DAG
@@ -35,6 +39,33 @@ public class SelfAuthentication {
 			}
 		}
 		return data;
+	}
+	
+	public static String getValidTargetCol(HashMap<String, ArrayList<String>> roleFieldMapping, String sourceNode,
+	        String targetCol, HashMap<String, CryptNode> nodeMapping, ArrayList<String> columns) {
+		// Ensure that the source node choosen can actually decrypt the target column.
+		// Useful when testing SelfAuth using randomly choosen source nodes.
+		boolean compatible = false;
+		while (!compatible) {
+			String targetNode = "";
+			for (Map.Entry<String, ArrayList<String>> entry : roleFieldMapping.entrySet()) {
+				String nodeName = entry.getKey();
+				ArrayList<String> cols = entry.getValue();
+				if (cols.contains(targetCol)) {
+					targetNode = nodeName;
+					break;
+				}
+			}
+			ArrayList<String> path = SelfAuthentication.getPath(sourceNode, targetNode, nodeMapping);
+			// if (path.size() > 0) {
+			if (!path.isEmpty()) {
+				compatible = true;
+			} else {
+				Random rand = new Random();
+				targetCol = columns.get(rand.nextInt(columns.size()));
+			}
+		}
+		return targetCol;
 	}
 	
 	// Decrypt using DAG without knowing role-to-object field mapping
@@ -75,7 +106,7 @@ public class SelfAuthentication {
 		return data;
 	}
 	
-	// The methods for deriving keys should probably be placed on the CryptDAG class.
+	// The methods for deriving keys/paths should probably be placed on the CryptDAG class.
 	// But for now, I will just make them take a nodeMapping HashMap as input.
 	public static ArrayList<String> deriveDescKey(HashMap<String, CryptNode> nodeMapping, String srcNode, String deriveKey) {
 		ArrayList<String> descKeys = new ArrayList<String>();
@@ -86,16 +117,6 @@ public class SelfAuthentication {
 		// Remove any duplicates from the list before returning
 		ArrayList<String> newDescKeys = SelfAuthentication.removeDuplicates(descKeys);
 		return newDescKeys;
-	}
-	
-	public static ArrayList<String> removeDuplicates(ArrayList<String> list) {
-		// Place all items in an ordered set to remove duplicates.
-		Set<String> set = new LinkedHashSet<String>();
-		set.addAll(list);
-		// Then clear the original set and refill with non-duplicated values.
-		list.clear();
-		list.addAll(set);
-		return list;
 	}
 	
 	public static ArrayList<String> deriveDescKeyHelper(HashMap<String, CryptNode> nodeMapping, String srcNode,
@@ -115,6 +136,41 @@ public class SelfAuthentication {
 			}
 		}
 		return descKeys;
+	}
+	
+	public static ArrayList<String> getPath(String srcNode, String destNode, HashMap<String, CryptNode> nodeMapping) {
+		ArrayList<String> currentPath = new ArrayList<String>(Arrays.asList(srcNode));
+		if (SelfAuthentication.getPathHelper(srcNode, destNode, currentPath, nodeMapping)) {
+			return currentPath;
+		}
+		return new ArrayList<String>();
+	}
+	
+	public static boolean getPathHelper(String srcNode, String destNode, ArrayList<String> currentPath,
+	        HashMap<String, CryptNode> nodeMapping) {
+		if (srcNode.equals(destNode)) {
+			return true;
+		}
+		for (CryptEdge edge : nodeMapping.get(srcNode).edges) {
+			// Does this work?
+			String edgeParentName = edge.parentName;
+			currentPath.add(edgeParentName);
+			if (SelfAuthentication.getPathHelper(edgeParentName, destNode, currentPath, nodeMapping)) {
+				return true;
+			}
+			currentPath.remove(currentPath.size() - 1);
+		}
+		return false;
+	}
+	
+	public static ArrayList<String> removeDuplicates(ArrayList<String> list) {
+		// Place all items in an ordered set to remove duplicates.
+		Set<String> set = new LinkedHashSet<String>();
+		set.addAll(list);
+		// Then clear the original set and refill with non-duplicated values.
+		list.clear();
+		list.addAll(set);
+		return list;
 	}
 	
 	public static String selfAuthEncHelper(String privateKey, String data) {
