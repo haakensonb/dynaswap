@@ -20,8 +20,7 @@ public class CryptDAGTest extends BaseModuleContextSensitiveTest {
 		CryptDAG dag = new CryptDAG();
 	}
 	
-	@Test
-	public void CryptDAG_model_gen_simple_mapping() {
+	public static void setupSimpleModel() {
 		UserService us = Context.getUserService();
 		// Add a simple model generation test case consisting of
 		// the following role-priv object mappings described in a JSON-like
@@ -58,6 +57,11 @@ public class CryptDAGTest extends BaseModuleContextSensitiveTest {
 		doctor.addPrivilege(privs.get(4));
 		us.saveRole(doctor);
 		
+	}
+	
+	@Test
+	public void CryptDAG_model_gen_simple_mapping() {
+		CryptDAGTest.setupSimpleModel();
 		CryptDAG dag = new CryptDAG();
 		System.out.println(dag.getFormattedGraph());
 	}

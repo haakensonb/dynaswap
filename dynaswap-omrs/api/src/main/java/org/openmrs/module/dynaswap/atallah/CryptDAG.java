@@ -40,6 +40,8 @@ public class CryptDAG {
 	// HACK: Change this so it isn't hard coded. Or find some other way to specify roles.
 	private static final String ROLE_PREFIX = "[CRYPT]";
 	
+	private HashMap<String, CryptNode> nodeMapping;
+	
 	/**
 	 * constructor
 	 */
@@ -168,6 +170,7 @@ public class CryptDAG {
 		for (HashMap.Entry<String, CryptNode> entry : nodeMapping.entrySet()) {
 			this.dynaService.saveCryptNode(entry.getValue());
 		}
+		this.nodeMapping = nodeMapping;
 		System.out.println("\nnodeMapping: " + nodeMapping.toString());
 		
 	}
@@ -246,6 +249,10 @@ public class CryptDAG {
 	
 	public String getFormattedGraph() {
 		return this.formattedGraph;
+	}
+	
+	public HashMap<String, CryptNode> getNodeMapping() {
+		return this.nodeMapping;
 	}
 	
 	private void printAdjMat(ArrayList<ArrayList<Integer>> adjMat) {
