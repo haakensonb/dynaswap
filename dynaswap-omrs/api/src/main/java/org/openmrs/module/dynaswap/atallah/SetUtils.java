@@ -2,7 +2,6 @@ package org.openmrs.module.dynaswap.atallah;
 
 import java.util.Set;
 import org.openmrs.Privilege;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 
