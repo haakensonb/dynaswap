@@ -121,15 +121,24 @@ public class SelfAuthentication {
 	
 	public static ArrayList<String> deriveDescKeyHelper(HashMap<String, CryptNode> nodeMapping, String srcNode,
 	        String deriveKey) {
+		System.out.println("deriveKey: " + deriveKey);
 		ArrayList<String> descKeys = new ArrayList<String>();
 		for (CryptEdge edge : nodeMapping.get(srcNode).edges) {
 			CryptNode childNode = nodeMapping.get(edge.childName);
-			String ciphertext = CryptUtil.hashFunc(deriveKey, childNode.label);
+			System.out.println("childNode: " + childNode.getName());
+			System.out.println("childNodeLabel: " + childNode.label);
+			String r_ij = CryptUtil.hashFunc(deriveKey, childNode.label);
+			// System.out.println("ciphertext: " + ciphertext);
 			// Will return t_j concated with k_j
 			// In other words, it's the derive key and decrypt key which must be split apart.
-			String plaintext = CryptUtil.decrypt(ciphertext, edge.y_ij);
+			// String plaintext = CryptUtil.decrypt(ciphertext, edge.y_ij);
+			// String plaintext = CryptUtil.decrypt(edge.y_ij, r_ij);
+			String plaintext = CryptUtil.decrypt(r_ij, edge.y_ij);
+			System.out.println("plaintext: " + plaintext);
 			String curDeriveKey = plaintext.substring(0, deriveKey.length());
+			System.out.println("curDeriveKey: " + curDeriveKey);
 			String curDecryptKey = plaintext.substring(deriveKey.length());
+			System.out.println("curDecryptKey: " + curDecryptKey);
 			descKeys.add(curDecryptKey);
 			for (String key : SelfAuthentication.deriveDescKey(nodeMapping, childNode.name, curDeriveKey)) {
 				descKeys.add(key);
@@ -153,9 +162,10 @@ public class SelfAuthentication {
 		}
 		for (CryptEdge edge : nodeMapping.get(srcNode).edges) {
 			// Does this work?
-			String edgeParentName = edge.parentName;
-			currentPath.add(edgeParentName);
-			if (SelfAuthentication.getPathHelper(edgeParentName, destNode, currentPath, nodeMapping)) {
+			// String edgeParentName = edge.parentName;
+			String edgeChildName = edge.childName;
+			currentPath.add(edgeChildName);
+			if (SelfAuthentication.getPathHelper(edgeChildName, destNode, currentPath, nodeMapping)) {
 				return true;
 			}
 			currentPath.remove(currentPath.size() - 1);

@@ -11,6 +11,8 @@ import org.openmrs.module.dynaswap.atallah.CryptNode;
 import org.openmrs.module.dynaswap.atallah.SelfAuthentication;
 import org.openmrs.test.BaseModuleContextSensitiveTest;
 import org.openmrs.module.dynaswap.CryptDAGTest;
+import org.openmrs.module.dynaswap.atallah.CryptUtil;
+import org.openmrs.util.Security;
 
 public class SelfAuthenticationTest extends BaseModuleContextSensitiveTest {
 	
@@ -72,7 +74,9 @@ public class SelfAuthenticationTest extends BaseModuleContextSensitiveTest {
 		String randTargetCol = columns.get(rand.nextInt(columns.size() - 1));
 		String targetCol = SelfAuthentication.getValidTargetCol(roleFieldMapping, sourceNode, randTargetCol, nodeMapping,
 		    columns);
+		System.out.println("sourceNode: " + sourceNode);
 		System.out.println("Target column: " + targetCol);
+		System.out.println("sourceNode mapped to field: " + roleFieldMapping.get(sourceNode).contains(targetCol));
 		ArrayList<ArrayList<String>> decryptedData = SelfAuthentication.decrypt(nodeMapping, encryptedData, columns,
 		    sourceNode, targetCol);
 		System.out.println("Decrypted data:");
