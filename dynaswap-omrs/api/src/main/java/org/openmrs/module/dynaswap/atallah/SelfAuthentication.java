@@ -127,17 +127,16 @@ public class SelfAuthentication {
 			CryptNode childNode = nodeMapping.get(edge.childName);
 			System.out.println("childNode: " + childNode.getName());
 			System.out.println("childNodeLabel: " + childNode.label);
-			String r_ij = CryptUtil.hashFunc(deriveKey, childNode.label);
-			// System.out.println("ciphertext: " + ciphertext);
+			String hashedKey = CryptUtil.hashFunc(deriveKey, childNode.label);
+			System.out.println("hashedKey: " + hashedKey);
 			// Will return t_j concated with k_j
 			// In other words, it's the derive key and decrypt key which must be split apart.
-			// String plaintext = CryptUtil.decrypt(ciphertext, edge.y_ij);
-			// String plaintext = CryptUtil.decrypt(edge.y_ij, r_ij);
-			String plaintext = CryptUtil.decrypt(r_ij, edge.y_ij);
-			System.out.println("plaintext: " + plaintext);
-			String curDeriveKey = plaintext.substring(0, deriveKey.length());
+			System.out.println("y_ij: " + edge.y_ij);
+			String deriveAndDecryptKeys = CryptUtil.decrypt(edge.y_ij, hashedKey);
+			System.out.println("deriveAndDecryptKeys: " + deriveAndDecryptKeys);
+			String curDeriveKey = deriveAndDecryptKeys.substring(0, deriveKey.length());
 			System.out.println("curDeriveKey: " + curDeriveKey);
-			String curDecryptKey = plaintext.substring(deriveKey.length());
+			String curDecryptKey = deriveAndDecryptKeys.substring(deriveKey.length());
 			System.out.println("curDecryptKey: " + curDecryptKey);
 			descKeys.add(curDecryptKey);
 			for (String key : SelfAuthentication.deriveDescKey(nodeMapping, childNode.name, curDeriveKey)) {

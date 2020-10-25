@@ -2,7 +2,6 @@ package org.openmrs.module.dynaswap.atallah;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.openmrs.util.Security;
-
 import java.math.BigInteger;
 
 public class CryptUtil {
@@ -11,14 +10,14 @@ public class CryptUtil {
 		String message = new String();
 		message = val1 + val2;
 		// return Security.encodeString(message, "SHA-256");
-		return DigestUtils.sha256Hex(message);
+		return DigestUtils.md5Hex(message);
 	}
 	
 	public static String hashFunc(String val1, String val2, String valOpt) {
 		String message = new String();
 		message = val1 + valOpt + val2;
 		// return Security.encodeString(message, "SHA-256");
-		return DigestUtils.sha256Hex(message);
+		return DigestUtils.md5Hex(message);
 	}
 	
 	public static String encrypt(String r_ij, String t_j, String k_j) {
@@ -31,6 +30,7 @@ public class CryptUtil {
 	public static String encrypt(String keyStr, String message) {
 		byte[] init = Security.getSavedInitVector();
 		byte[] key = hexStringToByteArray(keyStr);
+		// String paddedMessage = 
 		String ciphertext = Security.encrypt(message, init, key);
 		return CryptUtil.strToHexStr(ciphertext);
 	}
@@ -79,7 +79,7 @@ public class CryptUtil {
 	}
 	
 	public static String strToHexStr(String str) {
-		return String.format("%x", new BigInteger(1, str.getBytes()));
+		return String.format("%x", new BigInteger(1, str.getBytes("UTF-8")));
 	}
 	
 }
