@@ -2,7 +2,15 @@ package org.openmrs.module.dynaswap.atallah;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.openmrs.util.Security;
+import org.openmrs.util.OpenmrsConstants;
+import org.openmrs.api.APIException;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 
 public class CryptUtil {
 	
@@ -30,18 +38,60 @@ public class CryptUtil {
 	public static String encrypt(String keyStr, String message) {
 		byte[] init = Security.getSavedInitVector();
 		byte[] key = hexStringToByteArray(keyStr);
-		// String paddedMessage = 
-		String ciphertext = Security.encrypt(message, init, key);
-		return CryptUtil.strToHexStr(ciphertext);
+		// String ciphertext = Security.encrypt(message, init, key);
+		// return CryptUtil.strToHexStr(ciphertext);
+		String ciphertext = CryptUtil.encryptHelper(message, init, key);
+		return ciphertext;
 	}
 	
-	public static String decrypt(String ciphertext, String keyHexStr) {
-		System.out.println("decrypt meth ciphertext: " + ciphertext);
+	// Encryption without using base64 encoding like in the OpenMRS Security class.
+	public static String encryptHelper(String message, byte[] initVector, byte[] secretKey) {
+		IvParameterSpec initVectorSpec = new IvParameterSpec(initVector);
+		SecretKeySpec secret = new SecretKeySpec(secretKey, OpenmrsConstants.ENCRYPTION_KEY_SPEC);
+		byte[] encrypted;
+		String result;
+		
+		try {
+			Cipher cipher = Cipher.getInstance(OpenmrsConstants.ENCRYPTION_CIPHER_CONFIGURATION);
+			cipher.init(Cipher.ENCRYPT_MODE, secret, initVectorSpec);
+			encrypted = cipher.doFinal(message.getBytes(StandardCharsets.UTF_8));
+			// results in hex str
+			result = CryptUtil.bytesToHex(encrypted);
+		}
+		catch (GeneralSecurityException e) {
+			throw new APIException("could.not.encrypt.text", e);
+		}
+		
+		return result;
+	}
+	
+	public static String decryptHelper(String message, byte[] initVector, byte[] secretKey) {
+		IvParameterSpec initVectorSpec = new IvParameterSpec(initVector);
+		SecretKeySpec secret = new SecretKeySpec(secretKey, OpenmrsConstants.ENCRYPTION_KEY_SPEC);
+		String decrypted;
+		
+		try {
+			Cipher cipher = Cipher.getInstance(OpenmrsConstants.ENCRYPTION_CIPHER_CONFIGURATION);
+			cipher.init(Cipher.DECRYPT_MODE, secret, initVectorSpec);
+			byte[] original = cipher.doFinal(CryptUtil.hexStringToByteArray(message));
+			// decrypted = CryptUtil.bytesToHex(original);
+			decrypted = new String(original, StandardCharsets.UTF_8);
+		}
+		catch (GeneralSecurityException e) {
+			throw new APIException("could.not.decrypt.text", e);
+		}
+		
+		return decrypted;
+	}
+	
+	public static String decrypt(String keyHexStr, String ciphertext) {
 		System.out.println("decrypt meth keyHexStr: " + keyHexStr);
+		System.out.println("decrypt meth ciphertext: " + ciphertext);
 		byte[] init = Security.getSavedInitVector();
 		byte[] key = hexStringToByteArray(keyHexStr);
 		System.out.println("key hexStr: " + CryptUtil.bytesToHex(key));
-		String plaintext = Security.decrypt(ciphertext, init, key);
+		// String plaintext = Security.decrypt(ciphertext, init, key);
+		String plaintext = CryptUtil.decryptHelper(ciphertext, init, key);
 		return plaintext;
 	}
 	
@@ -79,7 +129,6 @@ public class CryptUtil {
 	}
 	
 	public static String strToHexStr(String str) {
-		return String.format("%x", new BigInteger(1, str.getBytes("UTF-8")));
+		return String.format("%x", new BigInteger(1, str.getBytes(StandardCharsets.UTF_8)));
 	}
-	
 }

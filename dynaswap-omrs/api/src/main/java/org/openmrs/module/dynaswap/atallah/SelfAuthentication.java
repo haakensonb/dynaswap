@@ -84,7 +84,7 @@ public class SelfAuthentication {
 		String targetKey = "";
 		for (String privateKey : privateKeys) {
 			String ciphertext = encryptedData.get(0);
-			String plaintext = CryptUtil.decrypt(ciphertext, privateKey);
+			String plaintext = CryptUtil.decrypt(privateKey, ciphertext);
 			String plaintextKey = plaintext.substring(0, privateKey.length());
 			if (privateKey.equals(plaintextKey)) {
 				targetKey = plaintextKey;
@@ -95,7 +95,7 @@ public class SelfAuthentication {
 		// Use working key to decrypt target column data
 		if (!targetKey.isEmpty()) {
 			for (String element : encryptedData) {
-				String plaintext = CryptUtil.decrypt(element, targetKey);
+				String plaintext = CryptUtil.decrypt(targetKey, element);
 				String plaintextData = plaintext.substring(targetKey.length());
 				decryptedData.add(plaintextData);
 			}
@@ -132,7 +132,7 @@ public class SelfAuthentication {
 			// Will return t_j concated with k_j
 			// In other words, it's the derive key and decrypt key which must be split apart.
 			System.out.println("y_ij: " + edge.y_ij);
-			String deriveAndDecryptKeys = CryptUtil.decrypt(edge.y_ij, hashedKey);
+			String deriveAndDecryptKeys = CryptUtil.decrypt(hashedKey, edge.y_ij);
 			System.out.println("deriveAndDecryptKeys: " + deriveAndDecryptKeys);
 			String curDeriveKey = deriveAndDecryptKeys.substring(0, deriveKey.length());
 			System.out.println("curDeriveKey: " + curDeriveKey);
