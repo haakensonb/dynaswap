@@ -7,6 +7,7 @@ import org.openmrs.api.APIException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
+import java.security.NoSuchAlgorithmException;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -68,17 +69,20 @@ public class CryptUtil {
 	public static String decryptHelper(String message, byte[] initVector, byte[] secretKey) {
 		IvParameterSpec initVectorSpec = new IvParameterSpec(initVector);
 		SecretKeySpec secret = new SecretKeySpec(secretKey, OpenmrsConstants.ENCRYPTION_KEY_SPEC);
-		String decrypted;
+		String decrypted = "";
 		
 		try {
 			Cipher cipher = Cipher.getInstance(OpenmrsConstants.ENCRYPTION_CIPHER_CONFIGURATION);
 			cipher.init(Cipher.DECRYPT_MODE, secret, initVectorSpec);
-			byte[] original = cipher.doFinal(CryptUtil.hexStringToByteArray(message));
+			byte[] bMess = CryptUtil.hexStringToByteArray(message);
+			// byte[] original = cipher.doFinal(CryptUtil.hexStringToByteArray(message));
+			byte[] original = cipher.doFinal(bMess);
 			// decrypted = CryptUtil.bytesToHex(original);
 			decrypted = new String(original, StandardCharsets.UTF_8);
 		}
 		catch (GeneralSecurityException e) {
-			throw new APIException("could.not.decrypt.text", e);
+			// throw new APIException("could.not.decrypt.text", e);
+			System.out.println(e.getStackTrace());
 		}
 		
 		return decrypted;
@@ -89,7 +93,6 @@ public class CryptUtil {
 		System.out.println("decrypt meth ciphertext: " + ciphertext);
 		byte[] init = Security.getSavedInitVector();
 		byte[] key = hexStringToByteArray(keyHexStr);
-		System.out.println("key hexStr: " + CryptUtil.bytesToHex(key));
 		// String plaintext = Security.decrypt(ciphertext, init, key);
 		String plaintext = CryptUtil.decryptHelper(ciphertext, init, key);
 		return plaintext;

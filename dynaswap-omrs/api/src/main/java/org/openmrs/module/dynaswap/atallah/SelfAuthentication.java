@@ -77,7 +77,12 @@ public class SelfAuthentication {
 		
 		// Get encrypted data we want and initialize decrypted data
 		int columnIndex = columns.indexOf(targetCol);
-		ArrayList<String> encryptedData = data.get(columnIndex);
+		// ArrayList<String> encryptedData = data.get(columnIndex);
+		ArrayList<String> encryptedData = SelfAuthentication.getColumnCopyFrom2d(data, columnIndex);
+		System.out.println("ENC column: ");
+		for (String d : encryptedData) {
+			System.out.println(d);
+		}
 		ArrayList<String> decryptedData = new ArrayList();
 		
 		// Figure what key (if any) work
@@ -85,7 +90,13 @@ public class SelfAuthentication {
 		for (String privateKey : privateKeys) {
 			String ciphertext = encryptedData.get(0);
 			String plaintext = CryptUtil.decrypt(privateKey, ciphertext);
-			String plaintextKey = plaintext.substring(0, privateKey.length());
+			System.out.println("SelfAUTH plaintext: " + plaintext);
+			System.out.println("SelfAUTH plaintext len: " + plaintext.length());
+			// String plaintextKey = plaintext.substring(0, privateKey.length());
+			String plaintextKey = "";
+			if (!plaintext.isEmpty()) {
+				plaintextKey = plaintext.substring(0, privateKey.length());
+			}
 			if (privateKey.equals(plaintextKey)) {
 				targetKey = plaintextKey;
 				break;
@@ -125,6 +136,7 @@ public class SelfAuthentication {
 		ArrayList<String> descKeys = new ArrayList<String>();
 		for (CryptEdge edge : nodeMapping.get(srcNode).edges) {
 			CryptNode childNode = nodeMapping.get(edge.childName);
+			System.out.println("parentNode: " + nodeMapping.get(srcNode).getName());
 			System.out.println("childNode: " + childNode.getName());
 			System.out.println("childNodeLabel: " + childNode.label);
 			String hashedKey = CryptUtil.hashFunc(deriveKey, childNode.label);
@@ -186,6 +198,14 @@ public class SelfAuthentication {
 		String formattedMessage = privateKey.concat(data);
 		String encryptedMessage = CryptUtil.encrypt(privateKey, formattedMessage);
 		return encryptedMessage;
+	}
+	
+	public static ArrayList<String> getColumnCopyFrom2d(ArrayList<ArrayList<String>> data, int columnIndex) {
+		ArrayList<String> column = new ArrayList<String>();
+		for (int rowIndex = 0; rowIndex < data.size(); rowIndex++) {
+			column.add(data.get(rowIndex).get(columnIndex));
+		}
+		return column;
 	}
 	
 }
