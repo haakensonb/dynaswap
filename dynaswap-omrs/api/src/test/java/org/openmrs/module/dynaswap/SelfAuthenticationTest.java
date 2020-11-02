@@ -36,7 +36,7 @@ public class SelfAuthenticationTest extends BaseModuleContextSensitiveTest {
 	
 	public HashMap<String, ArrayList<String>> getSimpleRoleFieldMapping() {
 		HashMap<String, ArrayList<String>> roleFieldMapping = new HashMap<String, ArrayList<String>>();
-		// for now try simple 1-1
+		// For now try simple 1-1 mapping.
 		// What about placeholders?
 		roleFieldMapping.put("[CRYPT]admin", new ArrayList<String>(Arrays.asList("Object 1")));
 		roleFieldMapping.put("[CRYPT]doctor", new ArrayList<String>(Arrays.asList("Object 2")));
@@ -64,7 +64,7 @@ public class SelfAuthenticationTest extends BaseModuleContextSensitiveTest {
 		        .encrypt(nodeMapping, roleFieldMapping, data, columns);
 		System.out.println("Encrypted data:");
 		this.print2dArrayList(encryptedData);
-		// Choose random starting node
+		// Choose random starting node.
 		Random rand = new Random();
 		int numOfNodes = nodeMapping.keySet().size();
 		String[] possibleNodes = new String[numOfNodes];

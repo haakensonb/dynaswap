@@ -18,14 +18,12 @@ public class CryptUtil {
 	public static String hashFunc(String val1, String val2) {
 		String message = new String();
 		message = val1 + val2;
-		// return Security.encodeString(message, "SHA-256");
 		return DigestUtils.md5Hex(message);
 	}
 	
 	public static String hashFunc(String val1, String val2, String valOpt) {
 		String message = new String();
 		message = val1 + valOpt + val2;
-		// return Security.encodeString(message, "SHA-256");
 		return DigestUtils.md5Hex(message);
 	}
 	
@@ -39,8 +37,6 @@ public class CryptUtil {
 	public static String encrypt(String keyStr, String message) {
 		byte[] init = Security.getSavedInitVector();
 		byte[] key = hexStringToByteArray(keyStr);
-		// String ciphertext = Security.encrypt(message, init, key);
-		// return CryptUtil.strToHexStr(ciphertext);
 		String ciphertext = CryptUtil.encryptHelper(message, init, key);
 		return ciphertext;
 	}
@@ -74,39 +70,26 @@ public class CryptUtil {
 		try {
 			Cipher cipher = Cipher.getInstance(OpenmrsConstants.ENCRYPTION_CIPHER_CONFIGURATION);
 			cipher.init(Cipher.DECRYPT_MODE, secret, initVectorSpec);
-			byte[] bMess = CryptUtil.hexStringToByteArray(message);
-			// byte[] original = cipher.doFinal(CryptUtil.hexStringToByteArray(message));
-			byte[] original = cipher.doFinal(bMess);
-			// decrypted = CryptUtil.bytesToHex(original);
+			byte[] bMessage = CryptUtil.hexStringToByteArray(message);
+			byte[] original = cipher.doFinal(bMessage);
 			decrypted = new String(original, StandardCharsets.UTF_8);
 		}
 		catch (GeneralSecurityException e) {
-			// throw new APIException("could.not.decrypt.text", e);
-			System.out.println(e.getStackTrace());
+			throw new APIException("could.not.decrypt.text", e);
 		}
 		
 		return decrypted;
 	}
 	
 	public static String decrypt(String keyHexStr, String ciphertext) {
-		System.out.println("decrypt meth keyHexStr: " + keyHexStr);
-		System.out.println("decrypt meth ciphertext: " + ciphertext);
 		byte[] init = Security.getSavedInitVector();
 		byte[] key = hexStringToByteArray(keyHexStr);
-		// String plaintext = Security.decrypt(ciphertext, init, key);
 		String plaintext = CryptUtil.decryptHelper(ciphertext, init, key);
 		return plaintext;
 	}
 	
 	// String must be an even length to be valid hex string.
 	public static byte[] hexStringToByteArray(String hex) {
-		// int len = str.length();
-		// byte[] data = new byte[len / 2];
-		// for (int i = 0; i < len; i += 2) {
-		// 	data[i / 2] = (byte) ((Character.digit(str.charAt(i), 16) << 4) + Character.digit(str.charAt(i + 1), 16));
-		// }
-		// return data;
-		
 		int byteNum = hex.length() / 2;
 		byte[] key = new byte[byteNum];
 		// Using i as the distance from the END of the string.

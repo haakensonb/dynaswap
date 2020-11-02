@@ -21,15 +21,15 @@ public class SelfAuthentication {
 	// In the future, this data will come from the database and the structure may change.
 	public static ArrayList<ArrayList<String>> encrypt(HashMap<String, CryptNode> nodeMapping,
 	        HashMap<String, ArrayList<String>> roleFieldMapping, ArrayList<ArrayList<String>> data, ArrayList<String> columns) {
-		// for every node, get its private key
+		// For every node, get its private key.
 		for (HashMap.Entry<String, CryptNode> entry : nodeMapping.entrySet()) {
 			String privateKey = entry.getValue().getDecryptKey();
 			String nodeName = entry.getKey();
-			// for every obj this node is mapped to
+			// For every obj this node is mapped to
 			ArrayList<String> Objects = roleFieldMapping.get(nodeName);
 			for (String obj : Objects) {
-				// for every row in the data
-				// chose the correct column(field) and selfAuthEncHelper
+				// For every row in the data
+				// chose the correct column(field) and use selfAuthEncHelper.
 				int columnNum = columns.indexOf(obj);
 				for (int i = 0; i < data.size(); i++) {
 					String curColData = data.get(i).get(columnNum);
@@ -57,7 +57,6 @@ public class SelfAuthentication {
 				}
 			}
 			ArrayList<String> path = SelfAuthentication.getPath(sourceNode, targetNode, nodeMapping);
-			// if (path.size() > 0) {
 			if (!path.isEmpty()) {
 				compatible = true;
 			} else {
@@ -68,33 +67,27 @@ public class SelfAuthentication {
 		return targetCol;
 	}
 	
-	// Decrypt using DAG without knowing role-to-object field mapping
+	// Decrypt using DAG without knowing role-to-object field mapping.
 	public static ArrayList<ArrayList<String>> decrypt(HashMap<String, CryptNode> nodeMapping,
 	        ArrayList<ArrayList<String>> data, ArrayList<String> columns, String sourceNode, String targetCol) {
 		// Don't have a public role-to-object mapping, so we have to derive all descendant keys.
 		String deriveKey = nodeMapping.get(sourceNode).getDeriveKey();
 		ArrayList<String> privateKeys = SelfAuthentication.deriveDescKey(nodeMapping, sourceNode, deriveKey);
 		
-		// Get encrypted data we want and initialize decrypted data
+		// Get encrypted data we want and initialize decrypted data.
 		int columnIndex = columns.indexOf(targetCol);
-		// ArrayList<String> encryptedData = data.get(columnIndex);
 		ArrayList<String> encryptedData = SelfAuthentication.getColumnCopyFrom2d(data, columnIndex);
-		System.out.println("ENC column: ");
-		for (String d : encryptedData) {
-			System.out.println(d);
-		}
 		ArrayList<String> decryptedData = new ArrayList();
 		
-		// Figure what key (if any) work
+		// Figure what key (if any) work.
 		String targetKey = "";
 		for (String privateKey : privateKeys) {
 			String ciphertext = encryptedData.get(0);
 			String plaintext = CryptUtil.decrypt(privateKey, ciphertext);
-			System.out.println("SelfAUTH plaintext: " + plaintext);
-			System.out.println("SelfAUTH plaintext len: " + plaintext.length());
-			// String plaintextKey = plaintext.substring(0, privateKey.length());
 			String plaintextKey = "";
 			if (!plaintext.isEmpty()) {
+				// Only grab the plaintextKey if there was a valid decryption.
+				// If decryption doesn't work with that key, plaintext will be an empty string.
 				plaintextKey = plaintext.substring(0, privateKey.length());
 			}
 			if (privateKey.equals(plaintextKey)) {
@@ -125,31 +118,22 @@ public class SelfAuthentication {
 		for (String key : SelfAuthentication.deriveDescKeyHelper(nodeMapping, srcNode, deriveKey)) {
 			descKeys.add(key);
 		}
-		// Remove any duplicates from the list before returning
+		// Remove any duplicates from the list before returning.
 		ArrayList<String> newDescKeys = SelfAuthentication.removeDuplicates(descKeys);
 		return newDescKeys;
 	}
 	
 	public static ArrayList<String> deriveDescKeyHelper(HashMap<String, CryptNode> nodeMapping, String srcNode,
 	        String deriveKey) {
-		System.out.println("deriveKey: " + deriveKey);
 		ArrayList<String> descKeys = new ArrayList<String>();
 		for (CryptEdge edge : nodeMapping.get(srcNode).edges) {
 			CryptNode childNode = nodeMapping.get(edge.childName);
-			System.out.println("parentNode: " + nodeMapping.get(srcNode).getName());
-			System.out.println("childNode: " + childNode.getName());
-			System.out.println("childNodeLabel: " + childNode.label);
 			String hashedKey = CryptUtil.hashFunc(deriveKey, childNode.label);
-			System.out.println("hashedKey: " + hashedKey);
 			// Will return t_j concated with k_j
 			// In other words, it's the derive key and decrypt key which must be split apart.
-			System.out.println("y_ij: " + edge.y_ij);
 			String deriveAndDecryptKeys = CryptUtil.decrypt(hashedKey, edge.y_ij);
-			System.out.println("deriveAndDecryptKeys: " + deriveAndDecryptKeys);
 			String curDeriveKey = deriveAndDecryptKeys.substring(0, deriveKey.length());
-			System.out.println("curDeriveKey: " + curDeriveKey);
 			String curDecryptKey = deriveAndDecryptKeys.substring(deriveKey.length());
-			System.out.println("curDecryptKey: " + curDecryptKey);
 			descKeys.add(curDecryptKey);
 			for (String key : SelfAuthentication.deriveDescKey(nodeMapping, childNode.name, curDeriveKey)) {
 				descKeys.add(key);
@@ -172,8 +156,6 @@ public class SelfAuthentication {
 			return true;
 		}
 		for (CryptEdge edge : nodeMapping.get(srcNode).edges) {
-			// Does this work?
-			// String edgeParentName = edge.parentName;
 			String edgeChildName = edge.childName;
 			currentPath.add(edgeChildName);
 			if (SelfAuthentication.getPathHelper(edgeChildName, destNode, currentPath, nodeMapping)) {
