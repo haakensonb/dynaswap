@@ -92,4 +92,21 @@ public class CryptDAGTest extends BaseModuleContextSensitiveTest {
 			System.out.println(e.getStackTrace());
 		}
 	}
+	
+	@Test
+	public void CryptDAG_setupRolePrivMapFromRoleDataMap() {
+		System.out.println("Testing role-priv setup from role-data mapping...");
+		CryptDAG dag = new CryptDAG();
+		try {
+			HashMap<String, HashMap<String, ArrayList<String>>> roleDataMap = dag.getRoleDataMapFromTxtFile();
+			dag.setupRolePrivMapFromRoleDataMap(roleDataMap);
+			List<Role> roles = Context.getUserService().getAllRoles();
+			for (Role role : roles) {
+				System.out.println(role.getRole());
+			}
+		}
+		catch (Exception e) {
+			System.out.println(e.getStackTrace());
+		}
+	}
 }

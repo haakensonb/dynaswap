@@ -27,6 +27,8 @@ import org.openmrs.Role;
 import org.openmrs.module.dynaswap.api.DynaSWAPBaseModuleService;
 import org.openmrs.module.dynaswap.api.dao.DynaSWAPBaseModuleDao;
 import org.openmrs.module.dynaswap.api.impl.DynaSWAPBaseModuleServiceImpl;
+import org.openmrs.api.UserService;
+import org.openmrs.api.APIException;
 
 /**
  * CryptDAG
@@ -297,18 +299,17 @@ public class CryptDAG {
 		HashMap<String, HashMap<String, ArrayList<String>>> mapping = new HashMap<String, HashMap<String, ArrayList<String>>>();
 		String baseModulePath = System.getProperty("user.dir");
 		String filePath = baseModulePath + CryptDAG.ROLE_DATA_FILE_PATH;
+		System.out.println("filePath: " + filePath);
 		Scanner scanner = new Scanner(new File(filePath));
 		String roleName = "";
 		String tableName = "";
 		HashMap<String, ArrayList<String>> tableMap = new HashMap<String, ArrayList<String>>();
-		System.out.println("Start reading from file...");
 		while (scanner.hasNextLine()) {
 			String line = scanner.nextLine().trim();
 			if (line.startsWith(CryptDAG.ROLE_ID)) {
 				roleName = line.split(CryptDAG.ROLE_ID)[1];
 				// Create new table-fields mapping for role.
 				tableMap = new HashMap<String, ArrayList<String>>();
-				// System.out.println(roleName);
 			} else if (line.startsWith(CryptDAG.TABLE_ID)) {
 				tableName = line.split(CryptDAG.TABLE_ID)[1];
 				System.out.println(tableName);
@@ -316,7 +317,6 @@ public class CryptDAG {
 				ArrayList<String> fieldList = new ArrayList<String>();
 				String fields = line.split(CryptDAG.FIELD_ID)[1];
 				for (String field : fields.split(",")) {
-					// System.out.println(field.trim());
 					fieldList.add(field.trim());
 				}
 				// Now add information for this role to the mapping.
@@ -325,5 +325,31 @@ public class CryptDAG {
 			}
 		}
 		return mapping;
+	}
+	
+	public void setupRolePrivMapFromRoleDataMap(HashMap<String, HashMap<String, ArrayList<String>>> roleDataMap) {
+		UserService us = Context.getUserService();
+		for (HashMap.Entry<String, HashMap<String, ArrayList<String>>> entry : roleDataMap.entrySet()) {
+			// Add the prefix to the front of the role name.
+			String roleName = new String(CryptDAG.ROLE_PREFIX);
+			roleName = roleName.concat(entry.getKey());
+			Role curRole = new Role(roleName);
+			for (HashMap.Entry<String, ArrayList<String>> subEntry : entry.getValue().entrySet()) {
+				for (String field : subEntry.getValue()) {
+					Privilege curPriv;
+					// Only create a privilege if it doesn't already exist in the database.
+					// The UserService throws an exception if a priv doesn't exist so that must be caught.
+					try {
+						curPriv = us.getPrivilege(field);
+					}
+					catch (APIException e) {
+						curPriv = new Privilege(field);
+						us.savePrivilege(curPriv);
+					}
+					curRole.addPrivilege(curPriv);
+				}
+			}
+			us.saveRole(curRole);
+		}
 	}
 }
