@@ -1,7 +1,9 @@
 package org.openmrs.module.dynaswap;
 
 import java.util.List;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Set;
 import java.util.HashSet;
 
@@ -64,5 +66,30 @@ public class CryptDAGTest extends BaseModuleContextSensitiveTest {
 		CryptDAGTest.setupSimpleModel();
 		CryptDAG dag = new CryptDAG();
 		System.out.println(dag.getFormattedGraph());
+	}
+	
+	@Test
+	public void CryptDAG_getRoleDataMapFromTxtFile() {
+		CryptDAGTest.setupSimpleModel();
+		CryptDAG dag = new CryptDAG();
+		try {
+			HashMap<String, HashMap<String, ArrayList<String>>> mapping = dag.getRoleDataMapFromTxtFile();
+			System.out.println("Printing test mapping values:");
+			for (HashMap.Entry<String, HashMap<String, ArrayList<String>>> entry : mapping.entrySet()) {
+				System.out.println("role:");
+				System.out.println(entry.getKey());
+				for (HashMap.Entry<String, ArrayList<String>> subEntry : entry.getValue().entrySet()) {
+					System.out.println("table:");
+					System.out.println(subEntry.getKey());
+					System.out.println("fields:");
+					for (String field : subEntry.getValue()) {
+						System.out.println(field);
+					}
+				}
+			}
+		}
+		catch (Exception e) {
+			System.out.println(e.getStackTrace());
+		}
 	}
 }

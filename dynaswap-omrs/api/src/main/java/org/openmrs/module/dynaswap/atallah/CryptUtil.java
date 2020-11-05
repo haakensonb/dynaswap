@@ -75,7 +75,8 @@ public class CryptUtil {
 			decrypted = new String(original, StandardCharsets.UTF_8);
 		}
 		catch (GeneralSecurityException e) {
-			throw new APIException("could.not.decrypt.text", e);
+			// throw new APIException("could.not.decrypt.text", e);
+			System.out.println(e.getStackTrace());
 		}
 		
 		return decrypted;

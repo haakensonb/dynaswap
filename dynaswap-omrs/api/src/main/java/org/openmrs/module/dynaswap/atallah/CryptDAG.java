@@ -3,9 +3,12 @@ package org.openmrs.module.dynaswap.atallah;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.io.IOException;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.Comparator;
@@ -39,6 +42,15 @@ public class CryptDAG {
 	// in the hierarchy. Instead only consider Roles with this prefix.
 	// HACK: Change this so it isn't hard coded. Or find some other way to specify roles.
 	private static final String ROLE_PREFIX = "[CRYPT]";
+	
+	// Append this to the base module path of "dynaswap-orms/api"
+	private static final String ROLE_DATA_FILE_PATH = "/src/main/java/org/openmrs/module/dynaswap/atallah/role_data_mapping.txt";
+	
+	private static final String ROLE_ID = "New Role: ";
+	
+	private static final String TABLE_ID = "Table: ";
+	
+	private static final String FIELD_ID = "Fields: ";
 	
 	private HashMap<String, CryptNode> nodeMapping;
 	
@@ -277,5 +289,41 @@ public class CryptDAG {
 			}
 		}
 		return roles;
+	}
+	
+	public HashMap<String, HashMap<String, ArrayList<String>>> getRoleDataMapFromTxtFile() throws FileNotFoundException,
+	        IOException {
+		// Role names are keys mapped to another map that defines table to list of fields mapping.
+		HashMap<String, HashMap<String, ArrayList<String>>> mapping = new HashMap<String, HashMap<String, ArrayList<String>>>();
+		String baseModulePath = System.getProperty("user.dir");
+		String filePath = baseModulePath + CryptDAG.ROLE_DATA_FILE_PATH;
+		Scanner scanner = new Scanner(new File(filePath));
+		String roleName = "";
+		String tableName = "";
+		HashMap<String, ArrayList<String>> tableMap = new HashMap<String, ArrayList<String>>();
+		System.out.println("Start reading from file...");
+		while (scanner.hasNextLine()) {
+			String line = scanner.nextLine().trim();
+			if (line.startsWith(CryptDAG.ROLE_ID)) {
+				roleName = line.split(CryptDAG.ROLE_ID)[1];
+				// Create new table-fields mapping for role.
+				tableMap = new HashMap<String, ArrayList<String>>();
+				// System.out.println(roleName);
+			} else if (line.startsWith(CryptDAG.TABLE_ID)) {
+				tableName = line.split(CryptDAG.TABLE_ID)[1];
+				System.out.println(tableName);
+			} else if (line.startsWith(CryptDAG.FIELD_ID)) {
+				ArrayList<String> fieldList = new ArrayList<String>();
+				String fields = line.split(CryptDAG.FIELD_ID)[1];
+				for (String field : fields.split(",")) {
+					// System.out.println(field.trim());
+					fieldList.add(field.trim());
+				}
+				// Now add information for this role to the mapping.
+				tableMap.put(tableName, fieldList);
+				mapping.put(roleName, tableMap);
+			}
+		}
+		return mapping;
 	}
 }
