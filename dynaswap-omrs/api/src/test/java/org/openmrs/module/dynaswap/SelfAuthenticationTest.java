@@ -52,6 +52,7 @@ public class SelfAuthenticationTest extends BaseModuleContextSensitiveTest {
 		System.out.println("Self Auth test");
 		CryptDAGTest.setupSimpleModel();
 		CryptDAG dag = new CryptDAG();
+		dag.createGraph();
 		System.out.println(dag.getFormattedGraph());
 		HashMap<String, CryptNode> nodeMapping = dag.getNodeMapping();
 		SelfAuthentication selfAuth = new SelfAuthentication();

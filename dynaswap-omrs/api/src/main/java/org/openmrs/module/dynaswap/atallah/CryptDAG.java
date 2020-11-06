@@ -7,11 +7,17 @@ import java.util.Scanner;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.Comparator;
+
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ClassPathResource;
 
 import org.openmrs.api.context.Context;
 import org.openmrs.api.db.hibernate.DbSessionFactory;
@@ -45,8 +51,8 @@ public class CryptDAG {
 	// HACK: Change this so it isn't hard coded. Or find some other way to specify roles.
 	private static final String ROLE_PREFIX = "[CRYPT]";
 	
-	// Append this to the base module path of "dynaswap-orms/api"
-	private static final String ROLE_DATA_FILE_PATH = "/src/main/java/org/openmrs/module/dynaswap/atallah/role_data_mapping.txt";
+	// Must be placed in /src/main/resources folder.
+	private static final String ROLE_DATA_FILENAME = "role_data_mapping.txt";
 	
 	private static final String ROLE_ID = "New Role: ";
 	
@@ -61,7 +67,6 @@ public class CryptDAG {
 	 */
 	public CryptDAG() {
 		this.dynaService = Context.getService(DynaSWAPBaseModuleService.class);
-		this.createGraph();
 	}
 	
 	@Transactional
@@ -294,13 +299,12 @@ public class CryptDAG {
 	}
 	
 	public HashMap<String, HashMap<String, ArrayList<String>>> getRoleDataMapFromTxtFile() throws FileNotFoundException,
-	        IOException {
+	        IOException, URISyntaxException {
 		// Role names are keys mapped to another map that defines table to list of fields mapping.
 		HashMap<String, HashMap<String, ArrayList<String>>> mapping = new HashMap<String, HashMap<String, ArrayList<String>>>();
-		String baseModulePath = System.getProperty("user.dir");
-		String filePath = baseModulePath + CryptDAG.ROLE_DATA_FILE_PATH;
-		System.out.println("filePath: " + filePath);
-		Scanner scanner = new Scanner(new File(filePath));
+		Resource resource = new ClassPathResource(CryptDAG.ROLE_DATA_FILENAME);
+		InputStream resourceInputStream = resource.getInputStream();
+		Scanner scanner = new Scanner(resourceInputStream);
 		String roleName = "";
 		String tableName = "";
 		HashMap<String, ArrayList<String>> tableMap = new HashMap<String, ArrayList<String>>();
@@ -310,9 +314,10 @@ public class CryptDAG {
 				roleName = line.split(CryptDAG.ROLE_ID)[1];
 				// Create new table-fields mapping for role.
 				tableMap = new HashMap<String, ArrayList<String>>();
+				
 			} else if (line.startsWith(CryptDAG.TABLE_ID)) {
 				tableName = line.split(CryptDAG.TABLE_ID)[1];
-				// System.out.println(tableName);
+				
 			} else if (line.startsWith(CryptDAG.FIELD_ID)) {
 				ArrayList<String> fieldList = new ArrayList<String>();
 				String fields = line.split(CryptDAG.FIELD_ID)[1];
@@ -324,6 +329,7 @@ public class CryptDAG {
 				mapping.put(roleName, tableMap);
 			}
 		}
+		scanner.close();
 		return mapping;
 	}
 	

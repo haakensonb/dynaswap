@@ -2,6 +2,8 @@ package org.openmrs.module.dynaswap;
 
 import java.util.List;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
@@ -65,6 +67,7 @@ public class CryptDAGTest extends BaseModuleContextSensitiveTest {
 	public void CryptDAG_model_gen_simple_mapping() {
 		CryptDAGTest.setupSimpleModel();
 		CryptDAG dag = new CryptDAG();
+		dag.createGraph();
 		System.out.println(dag.getFormattedGraph());
 	}
 	
@@ -88,8 +91,14 @@ public class CryptDAGTest extends BaseModuleContextSensitiveTest {
 				}
 			}
 		}
-		catch (Exception e) {
-			System.out.println(e.getStackTrace());
+		catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+		catch (URISyntaxException e) {
+			e.printStackTrace();
 		}
 	}
 	
