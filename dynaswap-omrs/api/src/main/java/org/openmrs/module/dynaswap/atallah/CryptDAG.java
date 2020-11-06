@@ -312,7 +312,7 @@ public class CryptDAG {
 				tableMap = new HashMap<String, ArrayList<String>>();
 			} else if (line.startsWith(CryptDAG.TABLE_ID)) {
 				tableName = line.split(CryptDAG.TABLE_ID)[1];
-				System.out.println(tableName);
+				// System.out.println(tableName);
 			} else if (line.startsWith(CryptDAG.FIELD_ID)) {
 				ArrayList<String> fieldList = new ArrayList<String>();
 				String fields = line.split(CryptDAG.FIELD_ID)[1];
@@ -329,6 +329,22 @@ public class CryptDAG {
 	
 	public void setupRolePrivMapFromRoleDataMap(HashMap<String, HashMap<String, ArrayList<String>>> roleDataMap) {
 		UserService us = Context.getUserService();
+		// OpenMRS does not give an easy way of checking if a Privilege already exists in the database.
+		// Instead, we must first identify unique strings for Privileges.
+		Set<String> possiblePrivs = new HashSet<String>();
+		for (HashMap.Entry<String, HashMap<String, ArrayList<String>>> entry : roleDataMap.entrySet()) {
+			for (HashMap.Entry<String, ArrayList<String>> subEntry : entry.getValue().entrySet()) {
+				for (String field : subEntry.getValue()) {
+					possiblePrivs.add(field);
+				}
+			}
+		}
+		// Privileges must be created in database before Roles
+		for (String privName : possiblePrivs) {
+			Privilege newPriv = new Privilege(privName);
+			us.savePrivilege(newPriv);
+		}
+		
 		for (HashMap.Entry<String, HashMap<String, ArrayList<String>>> entry : roleDataMap.entrySet()) {
 			// Add the prefix to the front of the role name.
 			String roleName = new String(CryptDAG.ROLE_PREFIX);
@@ -336,16 +352,7 @@ public class CryptDAG {
 			Role curRole = new Role(roleName);
 			for (HashMap.Entry<String, ArrayList<String>> subEntry : entry.getValue().entrySet()) {
 				for (String field : subEntry.getValue()) {
-					Privilege curPriv;
-					// Only create a privilege if it doesn't already exist in the database.
-					// The UserService throws an exception if a priv doesn't exist so that must be caught.
-					try {
-						curPriv = us.getPrivilege(field);
-					}
-					catch (APIException e) {
-						curPriv = new Privilege(field);
-						us.savePrivilege(curPriv);
-					}
+					Privilege curPriv = us.getPrivilege(field);
 					curRole.addPrivilege(curPriv);
 				}
 			}
