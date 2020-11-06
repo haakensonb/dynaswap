@@ -39,7 +39,6 @@ import org.openmrs.api.APIException;
 /**
  * CryptDAG
  */
-
 public class CryptDAG {
 	
 	private String formattedGraph;

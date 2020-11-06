@@ -5,8 +5,6 @@ import org.openmrs.module.dynaswap.atallah.CryptUtil;
 import org.openmrs.util.Security;
 import static org.junit.Assert.*;
 
-import java.util.Arrays;
-
 import org.apache.commons.codec.digest.DigestUtils;
 
 /**

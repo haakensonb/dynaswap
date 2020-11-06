@@ -16,12 +16,17 @@ import org.openmrs.Role;
 import org.openmrs.Privilege;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.UserService;
+import static org.junit.Assert.*;
 
 public class CryptDAGTest extends BaseModuleContextSensitiveTest {
 	
 	@Test
 	public void CryptDAG_constructor() {
 		CryptDAG dag = new CryptDAG();
+		String dagFormatted = dag.getFormattedGraph();
+		// The empty test database will by default only contain nodes for Anonymous, Authenticated, Provider, and System Developer
+		String expectedDagFormatted = "{\"elements\":{\"nodes\":[{\"data\":{\"id\":\"Anonymous\",\"label\":\"Anonymous\"}},{\"data\":{\"id\":\"Authenticated\",\"label\":\"Authenticated\"}},{\"data\":{\"id\":\"Provider\",\"label\":\"Provider\"}},{\"data\":{\"id\":\"System Developer\",\"label\":\"System Developer\"}}],\"edges\":[]}}";
+		assertEquals(dagFormatted, expectedDagFormatted);
 	}
 	
 	public static void setupSimpleModel() {
