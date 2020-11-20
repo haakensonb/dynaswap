@@ -61,11 +61,27 @@ public class CryptDAG {
 	
 	private HashMap<String, CryptNode> nodeMapping;
 	
+	private HashMap<String, HashMap<String, ArrayList<String>>> roleDataMap;
+	
 	/**
 	 * constructor
 	 */
 	public CryptDAG() {
 		this.dynaService = Context.getService(DynaSWAPBaseModuleService.class);
+		
+		// Try to read roleDataMap from file.
+		try {
+			this.setRoleDataMapFromTxtFile();
+		}
+		catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+		catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	@Transactional
@@ -297,8 +313,7 @@ public class CryptDAG {
 		return roles;
 	}
 	
-	public HashMap<String, HashMap<String, ArrayList<String>>> getRoleDataMapFromTxtFile() throws FileNotFoundException,
-	        IOException, URISyntaxException {
+	public void setRoleDataMapFromTxtFile() throws FileNotFoundException, IOException, URISyntaxException {
 		// Role names are keys mapped to another map that defines table to list of fields mapping.
 		HashMap<String, HashMap<String, ArrayList<String>>> mapping = new HashMap<String, HashMap<String, ArrayList<String>>>();
 		Resource resource = new ClassPathResource(CryptDAG.ROLE_DATA_FILENAME);
@@ -311,6 +326,8 @@ public class CryptDAG {
 			String line = scanner.nextLine().trim();
 			if (line.startsWith(CryptDAG.ROLE_ID)) {
 				roleName = line.split(CryptDAG.ROLE_ID)[1];
+				// Add on prefix that the rest of the system uses internally.
+				roleName = new String(CryptDAG.ROLE_PREFIX) + roleName;
 				// Create new table-fields mapping for role.
 				tableMap = new HashMap<String, ArrayList<String>>();
 				
@@ -329,7 +346,11 @@ public class CryptDAG {
 			}
 		}
 		scanner.close();
-		return mapping;
+		this.roleDataMap = mapping;
+	}
+	
+	public HashMap<String, HashMap<String, ArrayList<String>>> getRoleDataMap() {
+		return this.roleDataMap;
 	}
 	
 	public void setupRolePrivMapFromRoleDataMap(HashMap<String, HashMap<String, ArrayList<String>>> roleDataMap) {

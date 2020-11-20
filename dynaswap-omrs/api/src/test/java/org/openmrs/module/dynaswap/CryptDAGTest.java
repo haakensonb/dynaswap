@@ -29,7 +29,7 @@ public class CryptDAGTest extends BaseModuleContextSensitiveTest {
 		// {"admin": [0, 1, 2], "nurse": [1, 2], "clerk": [2, 3, 4], "doctor": [1, 2, 4]}
 		List<Privilege> privs = new ArrayList<Privilege>();
 		for (int i = 0; i < 5; i++) {
-			Privilege priv = new Privilege(Integer.toString(i));
+			Privilege priv = new Privilege(Integer.toString(i + 1));
 			privs.add(priv);
 			us.savePrivilege(priv);
 		}
@@ -71,31 +71,21 @@ public class CryptDAGTest extends BaseModuleContextSensitiveTest {
 	public void CryptDAG_getRoleDataMapFromTxtFile() {
 		CryptDAGTest.setupSimpleModel();
 		CryptDAG dag = new CryptDAG();
-		try {
-			HashMap<String, HashMap<String, ArrayList<String>>> mapping = dag.getRoleDataMapFromTxtFile();
-			System.out.println("Printing test mapping values:");
-			for (HashMap.Entry<String, HashMap<String, ArrayList<String>>> entry : mapping.entrySet()) {
-				System.out.println("role:");
-				System.out.println(entry.getKey());
-				for (HashMap.Entry<String, ArrayList<String>> subEntry : entry.getValue().entrySet()) {
-					System.out.println("table:");
-					System.out.println(subEntry.getKey());
-					System.out.println("fields:");
-					for (String field : subEntry.getValue()) {
-						System.out.println(field);
-					}
+		HashMap<String, HashMap<String, ArrayList<String>>> mapping = dag.getRoleDataMap();
+		System.out.println("Printing test mapping values:");
+		for (HashMap.Entry<String, HashMap<String, ArrayList<String>>> entry : mapping.entrySet()) {
+			System.out.println("role:");
+			System.out.println(entry.getKey());
+			for (HashMap.Entry<String, ArrayList<String>> subEntry : entry.getValue().entrySet()) {
+				System.out.println("table:");
+				System.out.println(subEntry.getKey());
+				System.out.println("fields:");
+				for (String field : subEntry.getValue()) {
+					System.out.println(field);
 				}
 			}
 		}
-		catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-		catch (IOException e) {
-			e.printStackTrace();
-		}
-		catch (URISyntaxException e) {
-			e.printStackTrace();
-		}
+		
 	}
 	
 	@Test
@@ -104,7 +94,7 @@ public class CryptDAGTest extends BaseModuleContextSensitiveTest {
 		System.out.println("Testing role-priv setup from role-data mapping...");
 		CryptDAG dag = new CryptDAG();
 		try {
-			HashMap<String, HashMap<String, ArrayList<String>>> roleDataMap = dag.getRoleDataMapFromTxtFile();
+			HashMap<String, HashMap<String, ArrayList<String>>> roleDataMap = dag.getRoleDataMap();
 			dag.setupRolePrivMapFromRoleDataMap(roleDataMap);
 			List<Role> roles = Context.getUserService().getAllRoles();
 			for (Role role : roles) {

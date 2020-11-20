@@ -1,0 +1,40 @@
+package org.openmrs.module.dynaswap;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import org.junit.Test;
+import org.openmrs.module.dynaswap.atallah.CryptDAG;
+import org.openmrs.module.dynaswap.atallah.SelfAuthentication;
+import org.openmrs.module.dynaswap.atallah.SelfAuthenticationDb;
+import org.openmrs.test.BaseModuleContextSensitiveTest;
+import org.openmrs.module.dynaswap.CryptDAGTest;
+import org.openmrs.module.dynaswap.atallah.CryptNode;
+import org.openmrs.module.dynaswap.TestSetupUtil;
+
+public class SelfAuthenticationDbTest extends BaseModuleContextSensitiveTest {
+	
+	@Test
+	public void SelfAuthenticationDbTest_getList() {
+		System.out.println("SelfAuth using Db values");
+		CryptDAGTest.setupSimpleModel();
+		CryptDAG dag = new CryptDAG();
+		dag.createGraph();
+		HashMap<String, CryptNode> nodeMapping = dag.getNodeMapping();
+		SelfAuthenticationDb selfAuthDb = new SelfAuthenticationDb();
+		ArrayList<ArrayList<String>> databaseData = selfAuthDb.getList();
+		System.out.println("Original Database data:");
+		TestSetupUtil.print2dArrayList(databaseData);
+		ArrayList<String> columns = selfAuthDb.getColumnNames();
+		System.out.println("columns:");
+		for (String col : columns) {
+			System.out.println(col);
+		}
+		HashMap<String, HashMap<String, ArrayList<String>>> roleFieldMapping = dag.getRoleDataMap();
+		ArrayList<ArrayList<String>> result = SelfAuthentication.encrypt(nodeMapping, roleFieldMapping, "person",
+		    databaseData, columns);
+		System.out.println("Enc results:");
+		TestSetupUtil.print2dArrayList(result);
+	}
+	
+}

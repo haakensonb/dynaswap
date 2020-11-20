@@ -20,37 +20,47 @@ public class SelfAuthentication {
 	// For now, this will take arguments for data as a 2d array and columns(fields) as an array.
 	// In the future, this data will come from the database and the structure may change.
 	public static ArrayList<ArrayList<String>> encrypt(HashMap<String, CryptNode> nodeMapping,
-	        HashMap<String, ArrayList<String>> roleFieldMapping, ArrayList<ArrayList<String>> data, ArrayList<String> columns) {
+	        HashMap<String, HashMap<String, ArrayList<String>>> roleFieldMapping, String tableName,
+	        ArrayList<ArrayList<String>> data, ArrayList<String> columns) {
 		// For every node, get its private key.
 		for (HashMap.Entry<String, CryptNode> entry : nodeMapping.entrySet()) {
 			String privateKey = entry.getValue().getDecryptKey();
 			String nodeName = entry.getKey();
 			// For every obj this node is mapped to
-			ArrayList<String> Objects = roleFieldMapping.get(nodeName);
-			for (String obj : Objects) {
-				// For every row in the data
-				// chose the correct column(field) and use selfAuthEncHelper.
-				int columnNum = columns.indexOf(obj);
-				for (int i = 0; i < data.size(); i++) {
-					String curColData = data.get(i).get(columnNum);
-					String encryptedColData = SelfAuthentication.selfAuthEncHelper(privateKey, curColData);
-					data.get(i).set(columnNum, encryptedColData);
+			if (roleFieldMapping.containsKey(nodeName)) {
+				if (roleFieldMapping.get(nodeName).containsKey(tableName)) {
+					ArrayList<String> Objects = roleFieldMapping.get(nodeName).get(tableName);
+					for (String obj : Objects) {
+						// For every row in the data
+						// chose the correct column(field) and use selfAuthEncHelper.
+						int columnNum = columns.indexOf(obj);
+						for (int i = 0; i < data.size(); i++) {
+							String curColData = data.get(i).get(columnNum);
+							// If the current column data is "null" (as a string because of db query)
+							// Then just ignore it.
+							if (curColData != null) {
+								String encryptedColData = SelfAuthentication.selfAuthEncHelper(privateKey, curColData);
+								data.get(i).set(columnNum, encryptedColData);
+							}
+						}
+					}
 				}
 			}
 		}
 		return data;
 	}
 	
-	public static String getValidTargetCol(HashMap<String, ArrayList<String>> roleFieldMapping, String sourceNode,
-	        String targetCol, HashMap<String, CryptNode> nodeMapping, ArrayList<String> columns) {
+	public static String getValidTargetCol(HashMap<String, HashMap<String, ArrayList<String>>> roleFieldMapping,
+	        String tableName, String sourceNode, String targetCol, HashMap<String, CryptNode> nodeMapping,
+	        ArrayList<String> columns) {
 		// Ensure that the source node choosen can actually decrypt the target column.
 		// Useful when testing SelfAuth using randomly choosen source nodes.
 		boolean compatible = false;
 		while (!compatible) {
 			String targetNode = "";
-			for (Map.Entry<String, ArrayList<String>> entry : roleFieldMapping.entrySet()) {
+			for (Map.Entry<String, HashMap<String, ArrayList<String>>> entry : roleFieldMapping.entrySet()) {
 				String nodeName = entry.getKey();
-				ArrayList<String> cols = entry.getValue();
+				ArrayList<String> cols = entry.getValue().get(tableName);
 				if (cols.contains(targetCol)) {
 					targetNode = nodeName;
 					break;
@@ -106,7 +116,8 @@ public class SelfAuthentication {
 		}
 		
 		// Replace original data with decrypted column and return.
-		data.set(columnIndex, decryptedData);
+		// data.set(columnIndex, decryptedData);
+		setColumnFrom2d(data, columnIndex, decryptedData);
 		return data;
 	}
 	
@@ -188,6 +199,12 @@ public class SelfAuthentication {
 			column.add(data.get(rowIndex).get(columnIndex));
 		}
 		return column;
+	}
+	
+	public static void setColumnFrom2d(ArrayList<ArrayList<String>> data, int columnIndex, ArrayList<String> newVals) {
+		for (int rowIndex = 0; rowIndex < data.size(); rowIndex++) {
+			data.get(rowIndex).set(columnIndex, newVals.get(rowIndex));
+		}
 	}
 	
 }
