@@ -35,18 +35,32 @@ public class SelfAuthenticationDb {
 			Statement stmt = conn.createStatement();
 			ResultSet rs;
 			
-			rs = stmt.executeQuery("select person_id, birthdate, gender from person");
+			// rs = stmt.executeQuery("select birthdate, gender from person");
+			// while (rs.next()) {
+			// 	ArrayList<String> row = new ArrayList<String>();
+			// 	// String id = rs.getString("person_id");
+			// 	// row.add(id);
+			// 	String birthdate = rs.getString("birthdate");
+			// 	row.add(birthdate);
+			// 	String gender = rs.getString("gender");
+			// 	row.add(gender);
+			// 	System.out.println("Row: " + birthdate + ", " + gender);
+			// 	resultList.add(row);
+			// }
+			
+			rs = stmt.executeQuery("select obs_id, value_text from obs");
 			while (rs.next()) {
-				ArrayList<String> row = new ArrayList<String>();
-				String id = rs.getString("person_id");
-				row.add(id);
-				String birthdate = rs.getString("birthdate");
-				row.add(birthdate);
-				String gender = rs.getString("gender");
-				row.add(gender);
-				System.out.println("Row: " + id + ", " + birthdate + ", " + gender);
-				resultList.add(row);
+				String id = rs.getString("obs_id");
+				String value_text = rs.getString("value_text");
+				System.out.println("Row: " + id + ", " + value_text);
+				if (value_text != null) {
+					ArrayList<String> row = new ArrayList<String>();
+					row.add(id);
+					row.add(value_text);
+					resultList.add(row);
+				}
 			}
+			
 			conn.close();
 		}
 		catch (Exception e) {
@@ -56,14 +70,45 @@ public class SelfAuthenticationDb {
 		return resultList;
 	}
 	
-	public ArrayList<String> getColumnNames() {
-		ArrayList<String> columnNames = new ArrayList<String>();
+	public void updateTable(ArrayList<ArrayList<String>> data, ArrayList<String> primaryKeys) {
+		try {
+			Connection conn = DriverManager.getConnection(this.url, this.username, this.password);
+			for (int i = 0; i < data.size(); i++) {
+				PreparedStatement ps = conn
+				// .prepareStatement("UPDATE person SET birthdate = ?, gender = ? WHERE person_id = ?");
+				        .prepareStatement("UPDATE obs SET value_text = ? WHERE obs_id = ?");
+				int index = 0;
+				for (int j = 0; j < data.get(i).size(); j++) {
+					String val = data.get(i).get(j);
+					// PreparedStatement index starts at 1.
+					index = j + 1;
+					ps.setString(index, val);
+				}
+				// Assuming that each rows of data and primary keys stay in the same ordering.
+				ps.setString(index + 1, primaryKeys.get(i));
+				ps.executeUpdate();
+				ps.close();
+			}
+			
+		}
+		catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+	}
+	
+	public ArrayList<String> getPrimaryKeys() {
+		ArrayList<String> primaryKeys = new ArrayList<String>();
 		
 		try {
 			Connection conn = DriverManager.getConnection(this.url, this.username, this.password);
-			ResultSet columns = conn.getMetaData().getColumns(null, null, "person", null);
-			while (columns.next()) {
-				columnNames.add(columns.getString("COLUMN_NAME"));
+			Statement stmt = conn.createStatement();
+			ResultSet rs;
+			
+			// rs = stmt.executeQuery("SELECT person_id FROM person");
+			rs = stmt.executeQuery("SELECT obs_id FROM obs");
+			while (rs.next()) {
+				String key = rs.getString("obs_id");
+				primaryKeys.add(key);
 			}
 			conn.close();
 		}
@@ -71,6 +116,38 @@ public class SelfAuthenticationDb {
 			System.out.println(e.getMessage());
 		}
 		
+		return primaryKeys;
+	}
+	
+	public ArrayList<String> getColumnNames() {
+		ArrayList<String> columnNames = new ArrayList<String>();
+		
+		try {
+			Connection conn = DriverManager.getConnection(this.url, this.username, this.password);
+			ResultSet columns = conn.getMetaData().getColumns(null, null, "obs", null);
+			while (columns.next()) {
+				columnNames.add(columns.getString("COLUMN_NAME"));
+			}
+			conn.close();
+			// Assume that first column will always be primary key?
+			// And this can't be used with the encryption
+			columnNames.remove(0);
+		}
+		catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+		
 		return columnNames;
+	}
+	
+	public ArrayList<String> separatePrimaryKeysFromData(ArrayList<ArrayList<String>> results) {
+		ArrayList<String> primaryKeys = new ArrayList<String>();
+		
+		for (int i = 0; i < results.size(); i++) {
+			String key = results.get(i).remove(0);
+			primaryKeys.add(key);
+		}
+		
+		return primaryKeys;
 	}
 }

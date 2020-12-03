@@ -1,6 +1,7 @@
 package org.openmrs.module.dynaswap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import org.junit.Test;
@@ -25,16 +26,24 @@ public class SelfAuthenticationDbTest extends BaseModuleContextSensitiveTest {
 		ArrayList<ArrayList<String>> databaseData = selfAuthDb.getList();
 		System.out.println("Original Database data:");
 		TestSetupUtil.print2dArrayList(databaseData);
-		ArrayList<String> columns = selfAuthDb.getColumnNames();
+		ArrayList<String> primaryKeys = selfAuthDb.separatePrimaryKeysFromData(databaseData);
+		// ArrayList<String> columns = selfAuthDb.getColumnNames();
+		ArrayList<String> columns = new ArrayList<String>(Arrays.asList("value_text"));
 		System.out.println("columns:");
 		for (String col : columns) {
 			System.out.println(col);
 		}
 		HashMap<String, HashMap<String, ArrayList<String>>> roleFieldMapping = dag.getRoleDataMap();
-		ArrayList<ArrayList<String>> result = SelfAuthentication.encrypt(nodeMapping, roleFieldMapping, "person",
-		    databaseData, columns);
+		ArrayList<ArrayList<String>> result = SelfAuthentication.encrypt(nodeMapping, roleFieldMapping, "obs", databaseData,
+		    columns);
 		System.out.println("Enc results:");
 		TestSetupUtil.print2dArrayList(result);
+		// ArrayList<String> primaryKeys = selfAuthDb.getPrimaryKeys();
+		
+		selfAuthDb.updateTable(result, primaryKeys);
+		ArrayList<ArrayList<String>> updatedDatabaseData = selfAuthDb.getList();
+		System.out.println("Updated Database data");
+		TestSetupUtil.print2dArrayList(updatedDatabaseData);
 	}
 	
 }

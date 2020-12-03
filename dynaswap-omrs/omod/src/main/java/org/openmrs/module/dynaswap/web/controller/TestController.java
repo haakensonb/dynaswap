@@ -22,6 +22,14 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
+// For testing database queries.
+// import org.openmrs.api.context.Context;
+// import org.openmrs.module.dynaswap.api.DynaSWAPBaseModuleService;
+// import org.openmrs.module.dynaswap.api.dao.DynaSWAPBaseModuleDao;
+// import org.openmrs.module.dynaswap.api.impl.DynaSWAPBaseModuleServiceImpl;
+import org.openmrs.module.dynaswap.atallah.SelfAuthenticationDb;
+import org.openmrs.module.dynaswap.atallah.SelfAuthentication;
+
 @Controller
 @RequestMapping(value = "module/dynaswap")
 public class TestController {
@@ -29,6 +37,11 @@ public class TestController {
 	@RequestMapping(value = "/testing", method = RequestMethod.GET)
 	@ResponseBody
 	public String getTesting() {
+		// DynaSWAPBaseModuleService dynaService = Context.getService(DynaSWAPBaseModuleService.class);
+		// dynaService.testSelectAll();
+		SelfAuthenticationDb selfAuthDb = new SelfAuthenticationDb();
+		ArrayList<ArrayList<String>> queryResults = selfAuthDb.getList();
+		
 		return "TESTING";
 	}
 	

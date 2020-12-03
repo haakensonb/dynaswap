@@ -33,7 +33,17 @@ public class SelfAuthentication {
 					for (String obj : Objects) {
 						// For every row in the data
 						// chose the correct column(field) and use selfAuthEncHelper.
+						
+						System.out.println("OBJ: " + obj);
+						
 						int columnNum = columns.indexOf(obj);
+						System.out.println("columnNum: " + columnNum);
+						
+						System.out.println("SELFAUTH error cols");
+						for (String col : columns) {
+							System.out.println(col);
+						}
+						
 						for (int i = 0; i < data.size(); i++) {
 							String curColData = data.get(i).get(columnNum);
 							// If the current column data is "null" (as a string because of db query)
