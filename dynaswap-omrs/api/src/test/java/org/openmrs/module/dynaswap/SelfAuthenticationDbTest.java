@@ -23,6 +23,7 @@ public class SelfAuthenticationDbTest extends BaseModuleContextSensitiveTest {
 		dag.createGraph();
 		HashMap<String, CryptNode> nodeMapping = dag.getNodeMapping();
 		SelfAuthenticationDb selfAuthDb = new SelfAuthenticationDb();
+		long startTime = System.currentTimeMillis();
 		ArrayList<ArrayList<String>> databaseData = selfAuthDb.getList();
 		System.out.println("Original Database data:");
 		TestSetupUtil.print2dArrayList(databaseData);
@@ -44,6 +45,20 @@ public class SelfAuthenticationDbTest extends BaseModuleContextSensitiveTest {
 		ArrayList<ArrayList<String>> updatedDatabaseData = selfAuthDb.getList();
 		System.out.println("Updated Database data");
 		TestSetupUtil.print2dArrayList(updatedDatabaseData);
+		
+		// Should use OpenMRS to get current role and then check nodemapping
+		String sourceNode = "[CRYPT]admin";
+		String targetCol = "value_text";
+		ArrayList<String> updatedPrimaryKeys = selfAuthDb.separatePrimaryKeysFromData(updatedDatabaseData);
+		ArrayList<ArrayList<String>> decryptedData = selfAuthDb.decryptDatabaseData(nodeMapping, updatedDatabaseData,
+		    updatedPrimaryKeys, columns, sourceNode, targetCol);
+		if (!decryptedData.isEmpty()) {
+			selfAuthDb.updateTable(decryptedData, updatedPrimaryKeys);
+			selfAuthDb.getList();
+		}
+		long endTime = System.currentTimeMillis();
+		System.out.println("Time: " + (endTime - startTime));
+		
 	}
 	
 }

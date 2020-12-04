@@ -21,8 +21,6 @@ Table: appointmentscheduling_appointment
 Fields: appointment_id, time_slot_id, visit_id, patient_id, appointment_type_id
 
 New Role: doctor
-Table: obs
-Fields: value_text
 Table: drug_order
 Fields: order_id
 Table: note

@@ -7,6 +7,10 @@ import java.sql.DriverManager;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.Arrays;
+
+import org.openmrs.module.dynaswap.atallah.SelfAuthentication;
 
 public class SelfAuthenticationDb {
 	
@@ -94,6 +98,32 @@ public class SelfAuthenticationDb {
 		catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
+	}
+	
+	public ArrayList<ArrayList<String>> decryptDatabaseData(HashMap<String, CryptNode> nodeMapping,
+	        ArrayList<ArrayList<String>> data, ArrayList<String> primaryKeys, ArrayList<String> columns, String sourceNode,
+	        String targetCol) {
+		ArrayList<ArrayList<String>> decryptedData = new ArrayList<ArrayList<String>>();
+		try {
+			decryptedData = SelfAuthentication.decrypt(nodeMapping, data, columns, sourceNode, targetCol);
+			// System.out.println("PRINTING DECRYPTED DATA:");
+			// String arrStr = "";
+			// for (int i = 0; i < decryptedData.size(); i++) {
+			// 	for (int j = 0; j < decryptedData.get(i).size(); j++) {
+			// 		arrStr += decryptedData.get(i).get(j);
+			// 		arrStr += " ";
+			// 	}
+			// 	arrStr += "\n";
+			// }
+			// System.out.println(arrStr);
+			
+		}
+		catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+		
+		return decryptedData;
+		
 	}
 	
 	public ArrayList<String> getPrimaryKeys() {

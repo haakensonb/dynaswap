@@ -26,6 +26,7 @@ public class SelfAuthentication {
 		for (HashMap.Entry<String, CryptNode> entry : nodeMapping.entrySet()) {
 			String privateKey = entry.getValue().getDecryptKey();
 			String nodeName = entry.getKey();
+			
 			// For every obj this node is mapped to
 			if (roleFieldMapping.containsKey(nodeName)) {
 				if (roleFieldMapping.get(nodeName).containsKey(tableName)) {
@@ -103,8 +104,12 @@ public class SelfAuthentication {
 		String targetKey = "";
 		for (String privateKey : privateKeys) {
 			String ciphertext = encryptedData.get(0);
+			System.out.println("ciphertext: " + ciphertext);
+			System.out.println("privateKey: " + privateKey);
 			String plaintext = CryptUtil.decrypt(privateKey, ciphertext);
+			System.out.println("plaintext: " + plaintext);
 			String plaintextKey = "";
+			System.out.println("plaintextKey: " + plaintextKey);
 			if (!plaintext.isEmpty()) {
 				// Only grab the plaintextKey if there was a valid decryption.
 				// If decryption doesn't work with that key, plaintext will be an empty string.
@@ -116,6 +121,8 @@ public class SelfAuthentication {
 			}
 		}
 		
+		System.out.println("targetKey: " + targetKey);
+		
 		// Use working key to decrypt target column data
 		if (!targetKey.isEmpty()) {
 			for (String element : encryptedData) {
@@ -124,6 +131,17 @@ public class SelfAuthentication {
 				decryptedData.add(plaintextData);
 			}
 		}
+		
+		// System.out.println("PRINTING DECRYPTED DATA (AGAIN):");
+		// String arrStr = "";
+		// for (int i = 0; i < decryptedData.size(); i++) {
+		// 	for (int j = 0; j < decryptedData.get(i).size(); j++) {
+		// 		arrStr += decryptedData.get(i).get(j);
+		// 		arrStr += " ";
+		// 	}
+		// 	arrStr += "\n";
+		// }
+		// System.out.println(arrStr);
 		
 		// Replace original data with decrypted column and return.
 		// data.set(columnIndex, decryptedData);
@@ -212,6 +230,8 @@ public class SelfAuthentication {
 	}
 	
 	public static void setColumnFrom2d(ArrayList<ArrayList<String>> data, int columnIndex, ArrayList<String> newVals) {
+		System.out.println("columnIndex: " + columnIndex);
+		System.out.println("data size: " + data.size());
 		for (int rowIndex = 0; rowIndex < data.size(); rowIndex++) {
 			data.get(rowIndex).set(columnIndex, newVals.get(rowIndex));
 		}
